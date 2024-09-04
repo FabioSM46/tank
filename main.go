@@ -4,17 +4,15 @@ import (
 	"log"
 
 	"github.com/FabioSM46/tank/internal/game"
+	"github.com/FabioSM46/tank/pkg/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-const (
-	screenWidth  = 1280
-	screenHeight = 720
-)
+
 
 func main() {
-	g := game.NewGame(screenWidth, screenHeight)
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	g := game.NewGame(utils.ScreenWidth, utils.ScreenHeight)
+	ebiten.SetWindowSize(utils.ScreenWidth, utils.ScreenHeight)
 	ebiten.SetWindowTitle("Aztank")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
