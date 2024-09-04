@@ -6,8 +6,8 @@ const (
 )
 
 const (
-	WallWidth  = 20
-	WallHeight = 20
+	WallWidth  = 10
+	WallHeight = 10
 )
 
 const (
