@@ -14,6 +14,7 @@ import (
 type AIPlayer struct {
     X, Y   float64   // Position (exported fields)
     Speed  float64   // Movement speed
+    Rotation float64      // Rotation angle in degrees
     Color  color.Color // AI color
     Image  *ebiten.Image // Tank image
 }
@@ -29,27 +30,37 @@ func NewAIPlayer(x, y float64, imgPath string) *AIPlayer {
         X:     x,
         Y:     y,
         Speed: 1.5, // Slower speed for AI
+        Rotation: 0,
         Image: img,
     }
 }
 
 // UpdateAI moves the AI towards the player.
 func (ai *AIPlayer) UpdateAI(player *player.Player) {
-    // Calculate direction towards the player.
+    // Calculate the direction towards the player
     dx := player.X - ai.X
     dy := player.Y - ai.Y
-    distance := math.Sqrt(dx*dx + dy*dy)
+    angle := math.Atan2(dy, dx) * 180 / math.Pi // Convert radians to degrees
 
-    // Move the AI towards the player.
-    if distance > 0 {
-        ai.X += ai.Speed * dx / distance
-        ai.Y += ai.Speed * dy / distance
-    }
+    // Update rotation to face the player
+    ai.Rotation = angle
+
+    rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
+
+    // Move the AI towards the player
+    ai.X += ai.Speed * math.Cos(rad)
+    ai.Y += ai.Speed * math.Sin(rad)
 }
 
 // Draw renders the AI player on the screen.
 func (ai *AIPlayer) Draw(screen *ebiten.Image) {
     opts := &ebiten.DrawImageOptions{}
+    
+    // Rotate around the center of the image
+    opts.GeoM.Translate(-float64(ai.Image.Bounds().Dx())/2, -float64(ai.Image.Bounds().Dy())/2)
+    opts.GeoM.Rotate(ai.Rotation * math.Pi / 180) // Convert to radians
+    opts.GeoM.Translate(float64(ai.Image.Bounds().Dx())/2, float64(ai.Image.Bounds().Dy())/2)
+    
     opts.GeoM.Translate(ai.X, ai.Y)
     screen.DrawImage(ai.Image, opts)
 }

@@ -3,6 +3,7 @@ package player
 import (
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -12,6 +13,7 @@ import (
 type Player struct {
     X, Y   float64   // Position (exported fields)
     Speed  float64   // Movement speed
+    Rotation float64      // Rotation angle in degrees
     Color  color.Color // Player color
     Image  *ebiten.Image // Tank image
 }
@@ -27,29 +29,40 @@ func NewPlayer(x, y float64, imgPath string) *Player {
         X:     x,
         Y:     y,
         Speed: 2.0,
+        Rotation: 0, 
         Image: img,
     }
 }
 
 // Update handles player input and movement.
 func (p *Player) Update() {
+    rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
+
     if ebiten.IsKeyPressed(ebiten.KeyUp) {
-        p.Y -= p.Speed
+        p.X += p.Speed * math.Cos(rad)
+        p.Y += p.Speed * math.Sin(rad)
     }
     if ebiten.IsKeyPressed(ebiten.KeyDown) {
-        p.Y += p.Speed
+        p.X -= p.Speed * math.Cos(rad)
+        p.Y -= p.Speed * math.Sin(rad)
     }
     if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-        p.X -= p.Speed
+        p.Rotation -= 2 // Rotate left
     }
     if ebiten.IsKeyPressed(ebiten.KeyRight) {
-        p.X += p.Speed
+        p.Rotation += 2 // Rotate right
     }
 }
 
 // Draw renders the player on the screen.
 func (p *Player) Draw(screen *ebiten.Image) {
     opts := &ebiten.DrawImageOptions{}
+    
+    // Rotate around the center of the image
+    opts.GeoM.Translate(-float64(p.Image.Bounds().Dx())/2, -float64(p.Image.Bounds().Dy())/2)
+    opts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
+    opts.GeoM.Translate(float64(p.Image.Bounds().Dx())/2, float64(p.Image.Bounds().Dy())/2)
+    
     opts.GeoM.Translate(p.X, p.Y)
     screen.DrawImage(p.Image, opts)
 }
