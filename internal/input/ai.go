@@ -45,11 +45,11 @@ func (ai *AIPlayer) UpdateAI(player *player.Player) {
     // Update rotation to face the player
     ai.Rotation = angle
 
-    rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
+   // rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
 
     // Move the AI towards the player
-    ai.X += ai.Speed * math.Cos(rad)
-    ai.Y += ai.Speed * math.Sin(rad)
+    ai.X += 0 //ai.Speed * math.Cos(rad)
+    ai.Y += 0//ai.Speed * math.Sin(rad)
 }
 
 // Draw renders the AI player on the screen.

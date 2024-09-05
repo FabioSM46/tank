@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -37,10 +36,10 @@ func NewPlayer(x, y float64, imgPath string) *Player {
 
 // Update handles player input and movement.
 func (p *Player) Update() {
-    rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
+    rad := p.Rotation * (math.Pi / 180) // Convert rotation angle to radians
 
     if ebiten.IsKeyPressed(ebiten.KeyUp) {
-        p.X += p.Speed * math.Cos(rad)
+        p.X += p.Speed * math.Cos(rad) 
         p.Y += p.Speed * math.Sin(rad)
     }
     if ebiten.IsKeyPressed(ebiten.KeyDown) {
@@ -53,8 +52,6 @@ func (p *Player) Update() {
     if ebiten.IsKeyPressed(ebiten.KeyRight) {
         p.Rotation += 2 // Rotate right
     }
-    //print the rotation angle
-    fmt.Println(p.X, p.Y, p.Rotation)
 }
 
 // Draw renders the player on the screen.
