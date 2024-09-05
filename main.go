@@ -8,13 +8,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-
-
 func main() {
-	g := game.NewGame(utils.ScreenWidth, utils.ScreenHeight)
-	ebiten.SetWindowSize(utils.ScreenWidth, utils.ScreenHeight)
-	ebiten.SetWindowTitle("Aztank")
-	if err := ebiten.RunGame(g); err != nil {
-		log.Fatal(err)
-	}
+    game := game.NewGame()
+
+    ebiten.SetWindowSize(utils.ScreenWidth, utils.ScreenHeight)
+    ebiten.SetWindowTitle("Aztank Game")
+
+    if err := ebiten.RunGame(game); err != nil {
+        log.Fatal(err)
+    }
 }

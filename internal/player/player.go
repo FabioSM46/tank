@@ -3,39 +3,44 @@ package player
 import (
 	"image/color"
 
-	"github.com/FabioSM46/tank/pkg/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-// Player represents the player's state.
+// Player represents a player in the game.
 type Player struct {
-	X, Y float64
+    X, Y   float64   // Position (exported fields)
+    Speed  float64   // Movement speed
+    Color  color.Color // Player color
 }
 
-// NewPlayer creates a new player at the given position.
-func NewPlayer(x, y float64) *Player {
-	return &Player{X: x, Y: y}
+// NewPlayer creates a new player instance.
+func NewPlayer(x, y float64, color color.Color) *Player {
+    return &Player{
+        X:     x,
+        Y:     y,
+        Speed: 2.0,
+        Color: color,
+    }
 }
 
-// Update handles player movement.
+// Update handles player input and movement.
 func (p *Player) Update() {
-	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		p.Y -= 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		p.Y += 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		p.X -= 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		p.X += 2
-	}
+    if ebiten.IsKeyPressed(ebiten.KeyUp) {
+        p.Y -= p.Speed
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyDown) {
+        p.Y += p.Speed
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+        p.X -= p.Speed
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyRight) {
+        p.X += p.Speed
+    }
 }
 
 // Draw renders the player on the screen.
 func (p *Player) Draw(screen *ebiten.Image) {
-	playerColor := color.RGBA{255, 255, 255, 255} // White color
-	vector.DrawFilledRect(screen, float32(p.X), float32(p.Y), utils.PlayerWidth, utils.PlayerHeight, playerColor, false)
+    vector.DrawFilledRect(screen, float32(p.X), float32(p.Y), 20, 20, p.Color, false)
 }
