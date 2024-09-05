@@ -1,8 +1,9 @@
 package game
 
 import (
-	"image/color"
+	"path/filepath"
 
+	"github.com/FabioSM46/tank/config"
 	"github.com/FabioSM46/tank/internal/input"
 	"github.com/FabioSM46/tank/internal/player"
 	"github.com/FabioSM46/tank/pkg/utils"
@@ -16,16 +17,20 @@ type Game struct {
 }
 
 func NewGame() *Game {
+    // Construct the paths to assets using the working directory
+    player1ImagePath := filepath.Join(config.WorkingDir, "assets/images/tank.png")
+    player2ImagePath := filepath.Join(config.WorkingDir, "assets/images/tank.png")
+
     return &Game{
-		player1: player.NewPlayer(100, 100, color.RGBA{0, 0, 255, 255}), // Blue player
-        player2: input.NewAIPlayer(400, 300, color.RGBA{255, 0, 0, 255}), // Red AI player
+        player1: player.NewPlayer(100, 100, player1ImagePath),  
+        player2: input.NewAIPlayer(400, 300, player2ImagePath), 
         gameMap: NewGameMap(),
     }
 }
 
 func (g *Game) Update() error {
     g.player1.Update()
-    g.player2.UpdateAI(g.player1) // Pass player1 to AI for behavior decisions
+    g.player2.UpdateAI(g.player1) // AI moves towards player1
     return nil
 }
 

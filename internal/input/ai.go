@@ -2,11 +2,12 @@ package input
 
 import (
 	"image/color"
+	"log"
 	"math"
 
 	"github.com/FabioSM46/tank/internal/player"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 // AIPlayer represents an AI-controlled player in the game.
@@ -14,15 +15,21 @@ type AIPlayer struct {
     X, Y   float64   // Position (exported fields)
     Speed  float64   // Movement speed
     Color  color.Color // AI color
+    Image  *ebiten.Image // Tank image
 }
 
 // NewAIPlayer creates a new AI player instance.
-func NewAIPlayer(x, y float64, color color.Color) *AIPlayer {
+func NewAIPlayer(x, y float64, imgPath string) *AIPlayer {
+    img, _, err := ebitenutil.NewImageFromFile(imgPath) // Load the tank image
+    if err != nil {
+        log.Fatal(err)
+    }
+
     return &AIPlayer{
         X:     x,
         Y:     y,
         Speed: 1.5, // Slower speed for AI
-        Color: color,
+        Image: img,
     }
 }
 
@@ -42,5 +49,7 @@ func (ai *AIPlayer) UpdateAI(player *player.Player) {
 
 // Draw renders the AI player on the screen.
 func (ai *AIPlayer) Draw(screen *ebiten.Image) {
-    vector.DrawFilledRect(screen, float32(ai.X), float32(ai.Y), 20, 20, ai.Color, false)
+    opts := &ebiten.DrawImageOptions{}
+    opts.GeoM.Translate(ai.X, ai.Y)
+    screen.DrawImage(ai.Image, opts)
 }
