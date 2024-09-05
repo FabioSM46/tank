@@ -1,17 +1,7 @@
 package utils
 
 const (
-	PlayerWidth  = 20
-	PlayerHeight = 20
+    ScreenWidth  = 800
+    ScreenHeight = 600
+    PlayerSpeed  = 2.0
 )
-
-const (
-	WallWidth  = 10
-	WallHeight = 10
-)
-
-const (
-	ScreenWidth  = 900
-	ScreenHeight = 900
-)
-
