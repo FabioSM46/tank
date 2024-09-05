@@ -56,11 +56,13 @@ func (ai *AIPlayer) UpdateAI(player *player.Player) {
 func (ai *AIPlayer) Draw(screen *ebiten.Image) {
     opts := &ebiten.DrawImageOptions{}
     
-    // Rotate around the center of the image
-    opts.GeoM.Translate(-float64(ai.Image.Bounds().Dx())/2, -float64(ai.Image.Bounds().Dy())/2)
+    // Translate to the center of the image, rotate, then translate back
+    imgWidth, imgHeight := ai.Image.Bounds().Dx(), ai.Image.Bounds().Dy()
+    opts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
     opts.GeoM.Rotate(ai.Rotation * math.Pi / 180) // Convert to radians
-    opts.GeoM.Translate(float64(ai.Image.Bounds().Dx())/2, float64(ai.Image.Bounds().Dy())/2)
+    opts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
     
+    // Translate to the position on the screen
     opts.GeoM.Translate(ai.X, ai.Y)
     screen.DrawImage(ai.Image, opts)
 }
