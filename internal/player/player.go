@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -52,6 +53,8 @@ func (p *Player) Update() {
     if ebiten.IsKeyPressed(ebiten.KeyRight) {
         p.Rotation += 2 // Rotate right
     }
+    //print the rotation angle
+    fmt.Println(p.X, p.Y, p.Rotation)
 }
 
 // Draw renders the player on the screen.
