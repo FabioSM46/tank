@@ -1,11 +1,10 @@
-package input
+package game
 
 import (
 	"image/color"
 	"log"
 	"math"
 
-	"github.com/FabioSM46/tank/internal/player"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
@@ -36,7 +35,7 @@ func NewAIPlayer(x, y float64, imgPath string) *AIPlayer {
 }
 
 // UpdateAI moves the AI towards the player.
-func (ai *AIPlayer) UpdateAI(player *player.Player) {
+func (ai *AIPlayer) UpdateAI(player *Player) {
     // Calculate the direction towards the player
     dx := player.X - ai.X
     dy := player.Y - ai.Y

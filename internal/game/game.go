@@ -4,15 +4,13 @@ import (
 	"path/filepath"
 
 	"github.com/FabioSM46/tank/config"
-	"github.com/FabioSM46/tank/internal/input"
-	"github.com/FabioSM46/tank/internal/player"
 	"github.com/FabioSM46/tank/pkg/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type Game struct {
-    player1 *player.Player
-    player2 *input.AIPlayer
+    player1 *Player
+    player2 *AIPlayer
     gameMap *GameMap
 }
 
@@ -21,10 +19,12 @@ func NewGame() *Game {
     player1ImagePath := filepath.Join(config.WorkingDir, "assets/images/tank.png")
     player2ImagePath := filepath.Join(config.WorkingDir, "assets/images/tank.png")
 
+    gameMap := NewGameMap()
+
     return &Game{
-        player1: player.NewPlayer(100, 100, player1ImagePath),  
-        player2: input.NewAIPlayer(400, 300, player2ImagePath), 
-        gameMap: NewGameMap(),
+        player1: NewPlayer(100, 100, player1ImagePath, gameMap),  
+        player2: NewAIPlayer(400, 300, player2ImagePath), 
+        gameMap: gameMap,
     }
 }
 

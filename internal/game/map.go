@@ -1,12 +1,12 @@
 package game
 
 import (
-	"image/color" // Ensure this is imported for color definitions
-	"math/rand"
+	"image/color"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/toolchain/src/math/rand"
 )
 
 const (
@@ -64,7 +64,20 @@ func (m *GameMap) Draw(screen *ebiten.Image) {
             }
 
             // Draw each tile as a rectangle
-            ebitenutil.DrawRect(screen, float64(x*TileSize), float64(y*TileSize), TileSize, TileSize, col)
+            vector.DrawFilledRect(screen, float32(x*TileSize), float32(y*TileSize), float32(TileSize), float32(TileSize), col, false)
         }
     }
+}
+
+// IsWall checks if a position collides with a wall.
+func (m *GameMap) IsWall(x, y float64) bool {
+	tileX := int(x) / TileSize 
+	tileY := int(y) / TileSize 
+
+	// Check if the position is outside the bounds of the map
+	if tileX < 0 || tileY < 0 || tileX >= MapWidth || tileY >= MapHeight {
+		return true // Treat out-of-bounds as a wall
+	}
+
+	return m.grid[tileY][tileX] == WallTile
 }
