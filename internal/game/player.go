@@ -7,6 +7,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 // Player represents a player in the game.
@@ -36,61 +37,105 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
 	}
 }
 
+// GetBoundingBox returns the bounding box of the player as (left, top, right, bottom)
+func (p *Player) GetBoundingBox() (float64, float64, float64, float64) {
+    imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
+    halfWidth := float64(imgWidth) / 2
+    halfHeight := float64(imgHeight) / 2
+    left := p.X - halfWidth
+    top := p.Y - halfHeight
+    right := p.X + halfWidth
+    bottom := p.Y + halfHeight
+
+    return left, top, right, bottom
+}
 
 func (p *Player) Update() {
-	rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
+    rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
 
-	newX, newY := p.X, p.Y // Store the new position
-
-	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		newX += p.Speed * math.Cos(rad)
-		newY += p.Speed * math.Sin(rad)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		newX -= p.Speed * math.Cos(rad)
-		newY -= p.Speed * math.Sin(rad)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		p.Rotation -= 2 // Rotate left
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		p.Rotation += 2 // Rotate right
-	}
-
-    // Check for wall collision before moving
-    if !p.GameMap.IsWall(newX, newY) {
-        // Check if the new position is within the map boundaries
-        if newX >= 0 && newX <= float64(MapWidth*TileSize) && newY >= 0 && newY <= float64(MapHeight*TileSize) {
-            // Update the player position if no collision and within map bounds
-            p.X = newX
-            p.Y = newY
-        }
+    // Calculate the potential new position
+    newX, newY := p.X, p.Y
+    if ebiten.IsKeyPressed(ebiten.KeyUp) {
+        newX += p.Speed * math.Cos(rad)
+        newY += p.Speed * math.Sin(rad)
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyDown) {
+        newX -= p.Speed * math.Cos(rad)
+        newY -= p.Speed * math.Sin(rad)
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+        p.Rotation -= 2 // Rotate left
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyRight) {
+        p.Rotation += 2 // Rotate right
     }
 
-	// Normalize the rotation angle to stay within 0-360 degrees
-	if p.Rotation >= 360 {
-		p.Rotation -= 360
-	} else if p.Rotation < 0 {
-		p.Rotation += 360
-	}
+    // Calculate the player's bounding box at the new position
+    newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBoxAt(newX, newY)
+
+    // Check for wall collision
+    if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
+        // Update the player position if no collision
+        p.X = newX
+        p.Y = newY
+    }
+
+    // Normalize the rotation angle to stay within 0-360 degrees
+    if p.Rotation >= 360 {
+        p.Rotation -= 360
+    } else if p.Rotation < 0 {
+        p.Rotation += 360
+    }
+}
+
+// GetBoundingBoxAt returns the bounding box of the player at a specific position
+func (p *Player) GetBoundingBoxAt(x, y float64) (float64, float64, float64, float64) {
+    imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
+    halfWidth := float64(imgWidth) / 2
+    halfHeight := float64(imgHeight) / 2
+
+    // Shift the bounding box by half the image width to the right and half the image height upward.
+    left := x - halfWidth + halfWidth
+    top := y - halfHeight + halfHeight
+    right := left + float64(imgWidth)
+    bottom := top + float64(imgHeight)
+
+    return left, top, right, bottom
 }
 
 // Draw renders the player on the screen.
 func (p *Player) Draw(screen *ebiten.Image) {
-	opts := &ebiten.DrawImageOptions{}
+    opts := &ebiten.DrawImageOptions{}
 
-	// Translate to the center of the image
-	imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
-	opts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
+    // Translate to the center of the image
+    imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
+    opts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
 
-	// Apply rotation
-	opts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
+    // Apply rotation
+    opts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
 
-	// Translate back to the original position
-	opts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
+    // Translate back to the original position
+    opts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
 
-	// Translate to the tank's position
-	opts.GeoM.Translate(p.X, p.Y)
+    // Translate to the tank's position
+    opts.GeoM.Translate(p.X, p.Y)
 
-	screen.DrawImage(p.Image, opts)
+    screen.DrawImage(p.Image, opts)
+
+    // Draw the bounding box border
+    p.DrawBoundingBoxBorder(screen)
+}
+
+
+func (p *Player) DrawBoundingBoxBorder(screen *ebiten.Image) {
+    left, top, right, bottom := p.GetBoundingBoxAt(p.X, p.Y)
+
+    // Define the color for the bounding box border
+    borderColor := color.RGBA{255, 0, 0, 255} // Red color with full opacity
+
+    // Draw the border of the bounding box
+    vector.StrokeLine(screen, float32(left), float32(top), float32(right), float32(top), 1, borderColor, true)
+    vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, borderColor, true)
+    vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, borderColor, true)
+    vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, borderColor, true)
 }
