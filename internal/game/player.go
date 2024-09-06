@@ -5,9 +5,62 @@ import (
 	"log"
 	"math"
 
+	"github.com/FabioSM46/tank/pkg/utils"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
+
+// Bullet represents a bullet shot by the player.
+type Bullet struct {
+	X, Y     float64 // Position
+	Speed    float64 // Movement speed
+	Rotation float64 // Direction in degrees
+    BounceCount int    // Number of times the bullet has bounced
+}
+
+// NewBullet creates a new bullet instance.
+func NewBullet(player *Player) *Bullet {
+	imgWidth, imgHeight := player.Image.Bounds().Dx(), player.Image.Bounds().Dy()
+	centerX := player.X + float64(imgWidth)/2
+	centerY := player.Y + float64(imgHeight)/2
+
+	return &Bullet{
+		X:        centerX,
+		Y:        centerY,
+		Speed:    5.0,
+		Rotation: player.Rotation,
+        BounceCount: 0,
+	}
+}
+
+// Update moves the bullet in the direction it's facing.
+func (b *Bullet) Update() {
+	rad := b.Rotation * math.Pi / 180 // Convert rotation to radians
+	b.X += b.Speed * math.Cos(rad)
+	b.Y += b.Speed * math.Sin(rad)
+}
+
+// Bounce changes the bullet's direction when it hits a wall and adjusts its position slightly.
+func (b *Bullet) Bounce(normalAngle float64) {
+	b.Rotation = 2*normalAngle - b.Rotation // Reflect the bullet's direction
+	b.BounceCount++
+
+	// Move the bullet slightly away from the wall to prevent it from getting stuck
+	rad := b.Rotation * math.Pi / 180
+	b.X += b.Speed * math.Cos(rad)
+	b.Y += b.Speed * math.Sin(rad)
+}
+
+// IsOutOfBounds checks if the bullet is outside the game area.
+func (b *Bullet) IsOutOfBounds() bool {
+	return b.X < 0 || b.Y < 0 || b.X > utils.ScreenWidth || b.Y > utils.ScreenHeight
+}
+
+// Draw renders the bullet on the screen.
+func (b *Bullet) Draw(screen *ebiten.Image) {
+	vector.DrawFilledCircle(screen, float32(b.X), float32(b.Y), 2, color.RGBA{255, 0, 0, 255}, false)
+}
 
 // Player represents a player in the game.
 type Player struct {
