@@ -8,13 +8,22 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+func init() {
+	settings := utils.LoadWindowSettings()
+	ebiten.SetWindowPosition(settings.X, settings.Y)
+	ebiten.SetWindowSize(utils.ScreenWidth, utils.ScreenHeight)
+	ebiten.SetWindowTitle("GoTank Game")
+}
+
 func main() {
-    game := game.NewGame()
+	g := game.NewGame()
 
-    ebiten.SetWindowSize(utils.ScreenWidth, utils.ScreenHeight)
-    ebiten.SetWindowTitle("GoTank Game")
+	if err := ebiten.RunGame(g); err != nil {
+		log.Fatal(err)
+	}
 
-    if err := ebiten.RunGame(game); err != nil {
-        log.Fatal(err)
-    }
+	defer func() {
+		x, y := ebiten.WindowPosition()
+		utils.SaveWindowSettings(utils.WindowSettings{X: x, Y: y})
+	}()
 }
