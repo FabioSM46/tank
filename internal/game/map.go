@@ -49,11 +49,17 @@ func (m *GameMap) Generate() {
     }
 }
 
-// CheckCollisionWithWall checks if any part of the player's bounding box intersects with a wall tile
+// CheckCollisionWithWall checks if any part of the player's bounding box intersects with a wall tile or if the player's bounding box is outside the map boundaries.
 func (m *GameMap) CheckCollisionWithWall(px1, py1, px2, py2 float64) bool {
     tileSize := float64(TileSize)
     collisionDetected := false
 
+    // Check if the player's bounding box is outside the map boundaries
+    if px1 < 0 || py1 < 0 || px2 > float64(MapWidth)*tileSize || py2 > float64(MapHeight)*tileSize {
+        return true // Collision detected with the map boundary
+    }
+
+    // Check collision with wall tiles
     for y := 0; y < MapHeight; y++ {
         for x := 0; x < MapWidth; x++ {
             if m.grid[y][x] == WallTile {
@@ -62,11 +68,12 @@ func (m *GameMap) CheckCollisionWithWall(px1, py1, px2, py2 float64) bool {
                 // Check if the player's bounding box intersects with the wall tile
                 if px1 < tx2 && px2 > tx1 && py1 < ty2 && py2 > ty1 {
                     collisionDetected = true
-                    // Additional code to handle position adjustment
+                    break
                 }
             }
         }
     }
+
     return collisionDetected
 }
 
@@ -90,15 +97,3 @@ func (m *GameMap) Draw(screen *ebiten.Image) {
     }
 }
 
-/* // IsWall checks if a position collides with a wall.
-func (m *GameMap) IsWall(x, y float64) bool {
-	tileX := int(x) / TileSize 
-	tileY := int(y) / TileSize 
-
-	// Check if the position is outside the bounds of the map
-	if tileX < 0 || tileY < 0 || tileX >= MapWidth || tileY >= MapHeight {
-		return true // Treat out-of-bounds as a wall
-	}
-
-	return m.grid[tileY][tileX] == WallTile
-} */
