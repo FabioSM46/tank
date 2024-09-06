@@ -14,10 +14,10 @@ import (
 
 // Bullet represents a bullet shot by the player.
 type Bullet struct {
-	X, Y     float64 // Position
-	Speed    float64 // Movement speed
-	Rotation float64 // Direction in degrees
-    BounceCount int    // Number of times the bullet has bounced
+	X, Y        float64 // Position
+	VelX, VelY  float64 // Velocity components
+	Rotation    float64 // Direction in degrees
+	BounceCount int     // Number of times the bullet has bounced
 }
 
 // NewBullet creates a new bullet instance starting slightly in front of the tank.
@@ -29,54 +29,41 @@ func NewBullet(player *Player) *Bullet {
 
 	// Calculate the starting position in front of the tank
 	rad := player.Rotation * math.Pi / 180 // Convert rotation angle to radians
-	offsetX := 20 * math.Cos(rad) // Distance in front of the tank
-	offsetY := 20 * math.Sin(rad) // Distance in front of the tank
+	offsetX := 20 * math.Cos(rad)          // Distance in front of the tank
+	offsetY := 20 * math.Sin(rad)          // Distance in front of the tank
+
+	// Set initial speed and velocity components
+	speed := 5.0
+	velX := speed * math.Cos(rad)
+	velY := speed * math.Sin(rad)
 
 	return &Bullet{
 		X:          centerX + offsetX,
 		Y:          centerY + offsetY,
-		Speed:      5.0,
+		VelX:       velX,
+		VelY:       velY,
 		Rotation:   player.Rotation,
 		BounceCount: 0,
 	}
 }
 
-// Update moves the bullet in the direction it's facing.
+// Update moves the bullet according to its velocity.
 func (b *Bullet) Update() {
-	rad := b.Rotation * math.Pi / 180 // Convert rotation to radians
-	b.X += b.Speed * math.Cos(rad)
-	b.Y += b.Speed * math.Sin(rad)
+	b.X += b.VelX
+	b.Y += b.VelY
 }
 
-// Bounce changes the bullet's direction when it hits a wall and adjusts its position slightly.
+// Bounce changes the bullet's direction when it hits a wall.
 func (b *Bullet) Bounce(normalAngle float64) {
-	// Convert angles to radians
-	bulletRad := b.Rotation * math.Pi / 180
+	// Convert the normal angle to radians
 	normalRad := normalAngle * math.Pi / 180
 
-	// Calculate the incoming vector direction
-	incomingX := math.Cos(bulletRad)
-	incomingY := math.Sin(bulletRad)
-
-	// Calculate the normal vector components
-	normalX := math.Cos(normalRad)
-	normalY := math.Sin(normalRad)
-
-	// Calculate the dot product
-	dotProduct := incomingX*normalX + incomingY*normalY
-
-	// Calculate the reflected vector
-	reflectedX := incomingX - 2*dotProduct*normalX
-	reflectedY := incomingY - 2*dotProduct*normalY
-
-	// Convert back to rotation angle
-	b.Rotation = math.Atan2(reflectedY, reflectedX) * 180 / math.Pi
+	// Reflect the bullet's velocity vector over the normal
+	dot := b.VelX*math.Cos(normalRad) + b.VelY*math.Sin(normalRad)
+	b.VelX -= 2 * dot * math.Cos(normalRad)
+	b.VelY -= 2 * dot * math.Sin(normalRad)
 
 	b.BounceCount++
-
-	// Move the bullet slightly away from the wall to prevent it from getting stuck
-	b.X += b.Speed * reflectedX
-	b.Y += b.Speed * reflectedY
 }
 
 // IsOutOfBounds checks if the bullet is outside the game area.
@@ -91,12 +78,12 @@ func (b *Bullet) Draw(screen *ebiten.Image) {
 
 // Player represents a player in the game.
 type Player struct {
-    X, Y   float64   // Position (exported fields)
-    Speed  float64   // Movement speed
-    Rotation float64      // Rotation angle in degrees
-    Color  color.Color // Player color
-    Image  *ebiten.Image // Tank image
-    GameMap  *GameMap // Reference to the game map for collision detection
+	X, Y      float64     // Position
+	Speed     float64     // Movement speed
+	Rotation  float64     // Rotation angle in degrees
+	Color     color.Color // Player color
+	Image     *ebiten.Image // Tank image
+	GameMap   *GameMap    // Reference to the game map for collision detection
 }
 
 // NewPlayer creates a new player instance.
@@ -136,107 +123,106 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
 
 // GetBoundingBox returns the bounding box of the player as (left, top, right, bottom)
 func (p *Player) GetBoundingBox() (float64, float64, float64, float64) {
-    imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
-    halfWidth := float64(imgWidth) / 2
-    halfHeight := float64(imgHeight) / 2
-    left := p.X - halfWidth
-    top := p.Y - halfHeight
-    right := p.X + halfWidth
-    bottom := p.Y + halfHeight
+	imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
+	halfWidth := float64(imgWidth) / 2
+	halfHeight := float64(imgHeight) / 2
+	left := p.X - halfWidth
+	top := p.Y - halfHeight
+	right := p.X + halfWidth
+	bottom := p.Y + halfHeight
 
-    return left, top, right, bottom
+	return left, top, right, bottom
 }
 
 func (p *Player) Update() {
-    rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
+	rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
 
-    // Calculate the potential new position
-    newX, newY := p.X, p.Y
-    if ebiten.IsKeyPressed(ebiten.KeyUp) {
-        newX += p.Speed * math.Cos(rad)
-        newY += p.Speed * math.Sin(rad)
-    }
-    if ebiten.IsKeyPressed(ebiten.KeyDown) {
-        newX -= p.Speed * math.Cos(rad)
-        newY -= p.Speed * math.Sin(rad)
-    }
-    if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-        p.Rotation -= 2 // Rotate left
-    }
-    if ebiten.IsKeyPressed(ebiten.KeyRight) {
-        p.Rotation += 2 // Rotate right
-    }
+	// Calculate the potential new position
+	newX, newY := p.X, p.Y
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		newX += p.Speed * math.Cos(rad)
+		newY += p.Speed * math.Sin(rad)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		newX -= p.Speed * math.Cos(rad)
+		newY -= p.Speed * math.Sin(rad)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		p.Rotation -= 2 // Rotate left
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		p.Rotation += 2 // Rotate right
+	}
 
-    // Calculate the player's bounding box at the new position
-    newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBoxAt(newX, newY)
+	// Calculate the player's bounding box at the new position
+	newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBoxAt(newX, newY)
 
-    // Check for wall collision
-    if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
-        // Update the player position if no collision
-        p.X = newX
-        p.Y = newY
-    }
+	// Check for wall collision
+	if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
+		// Update the player position if no collision
+		p.X = newX
+		p.Y = newY
+	}
 
-    // Normalize the rotation angle to stay within 0-360 degrees
-    if p.Rotation >= 360 {
-        p.Rotation -= 360
-    } else if p.Rotation < 0 {
-        p.Rotation += 360
-    }
+	// Normalize the rotation angle to stay within 0-360 degrees
+	if p.Rotation >= 360 {
+		p.Rotation -= 360
+	} else if p.Rotation < 0 {
+		p.Rotation += 360
+	}
 }
 
 // GetBoundingBoxAt returns the bounding box of the player at a specific position
 func (p *Player) GetBoundingBoxAt(x, y float64) (float64, float64, float64, float64) {
-    imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
-    halfWidth := float64(imgWidth) / 2
-    halfHeight := float64(imgHeight) / 2
+	imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
+	halfWidth := float64(imgWidth) / 2
+	halfHeight := float64(imgHeight) / 2
 
-    offsetX, offsetY := 16.0, 16.0 // Adjust this value to move the bounding box
-    margin := 5.0 // Adjust this value to make the bounding box narrower
+	offsetX, offsetY := 16.0, 16.0 // Adjust this value to move the bounding box
+	margin := 5.0 // Adjust this value to make the bounding box narrower
 
-    // Calculate the bounding box with the applied offsets
-    left := x - halfWidth + margin + offsetX
-    top := y - halfHeight + margin + offsetY
-    right := left + float64(imgWidth) - 2*margin
-    bottom := top + float64(imgHeight) - 2*margin
+	// Calculate the bounding box with the applied offsets
+	left := x - halfWidth + margin + offsetX
+	top := y - halfHeight + margin + offsetY
+	right := left + float64(imgWidth) - 2*margin
+	bottom := top + float64(imgHeight) - 2*margin
 
-    return left, top, right, bottom
+	return left, top, right, bottom
 }
 
 // Draw renders the player on the screen.
 func (p *Player) Draw(screen *ebiten.Image) {
-    opts := &ebiten.DrawImageOptions{}
+	opts := &ebiten.DrawImageOptions{}
 
-    // Translate to the center of the image
-    imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
-    opts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
+	// Translate to the center of the image
+	imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
+	opts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
 
-    // Apply rotation
-    opts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
+	// Apply rotation
+	opts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
 
-    // Translate back to the original position
-    opts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
+	// Translate back to the original position
+	opts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
 
-    // Translate to the tank's position
-    opts.GeoM.Translate(p.X, p.Y)
+	// Translate to the tank's position
+	opts.GeoM.Translate(p.X, p.Y)
 
-    // Draw the tank
-    screen.DrawImage(p.Image, opts)
+	// Draw the tank
+	screen.DrawImage(p.Image, opts)
 
-    // Draw the bounding box
-    // Apply the same transformations to the bounding box
-    bboxOpts := &ebiten.DrawImageOptions{}
-    bboxOpts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
-    bboxOpts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
-    bboxOpts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
-    bboxOpts.GeoM.Translate(p.X, p.Y)
+	// Draw the bounding box
+	// Apply the same transformations to the bounding box
+	bboxOpts := &ebiten.DrawImageOptions{}
+	bboxOpts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
+	bboxOpts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
+	bboxOpts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
+	bboxOpts.GeoM.Translate(p.X, p.Y)
 
-    left, top, right, bottom := p.GetBoundingBoxAt(p.X, p.Y)
-    
-    // Draw bounding box with red lines
-    vector.StrokeLine(screen, float32(left), float32(top), float32(right), float32(top), 1, color.RGBA{255, 0, 0, 255}, false)   // Top line
-    vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Right line
-    vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Bottom line
-    vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, color.RGBA{255, 0, 0, 255}, false) // Left line
+	left, top, right, bottom := p.GetBoundingBoxAt(p.X, p.Y)
+	
+	// Draw bounding box with red lines
+	vector.StrokeLine(screen, float32(left), float32(top), float32(right), float32(top), 1, color.RGBA{255, 0, 0, 255}, false)   // Top line
+	vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Right line
+	vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Bottom line
+	vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, color.RGBA{255, 0, 0, 255}, false) // Left line
 }
-

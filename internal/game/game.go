@@ -1,6 +1,7 @@
 package game
 
 import (
+	"math"
 	"path/filepath"
 
 	"github.com/FabioSM46/tank/config"
@@ -38,24 +39,26 @@ func (g *Game) Update() error {
 	for i := len(g.bullets) - 1; i >= 0; i-- {
 		bullet := g.bullets[i]
 		bullet.Update()
-
+	
 		// Check for wall collision
 		if g.gameMap.CheckCollisionWithWall(bullet.X, bullet.Y, bullet.X, bullet.Y) {
 			if bullet.BounceCount < 2 {
 				// Calculate normal angle of the wall for bouncing
-				normalAngle := g.calculateWallNormal(bullet.X)
+				normalAngle := g.calculateWallNormal(bullet.X, bullet.Y)
 				bullet.Bounce(normalAngle)
 			} else {
 				// Remove the bullet after two bounces
-				g.bullets = append(g.bullets[:i], g.bullets[i+1:]...)
+				g.bullets = removeBullet(g.bullets, i)
+				continue // Continue to the next iteration to avoid processing an invalid index
 			}
 		}
-
+	
 		// Remove bullets that are out of bounds
 		if bullet.IsOutOfBounds() {
-			g.bullets = append(g.bullets[:i], g.bullets[i+1:]...)
+			g.bullets = removeBullet(g.bullets, i)
 		}
 	}
+	
 
 	// Check for shooting input
 	if ebiten.IsKeyPressed(ebiten.KeySpace) {
@@ -63,6 +66,10 @@ func (g *Game) Update() error {
 	}
 
 	return nil
+}
+
+func removeBullet(bullets []*Bullet, i int) []*Bullet {
+    return append(bullets[:i], bullets[i+1:]...)
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
@@ -87,11 +94,38 @@ func (g *Game) ShootBullet(p *Player) {
 }
 
 // calculateWallNormal returns the normal angle of the wall at the collision point.
-func (g *Game) calculateWallNormal(x float64) float64 {
-    // Simple example: assuming vertical or horizontal walls
-    // You can improve this function to calculate based on the actual wall angle
-    if x <= 0 || x >= utils.ScreenWidth {
-        return 90 // Normal for vertical walls
-    }
-    return 0 // Normal for horizontal walls
+func (g *Game) calculateWallNormal(bulletX, bulletY float64) float64 {
+	tileSize := float64(TileSize)
+
+	// Determine the tile the bullet is in
+	tileX := int(bulletX / tileSize)
+	tileY := int(bulletY / tileSize)
+
+	// Check if we are out of bounds
+	if tileX < 0 || tileX >= MapWidth || tileY < 0 || tileY >= MapHeight {
+		return 0 // Assume horizontal wall normal for out-of-bounds
+	}
+
+	// Calculate the center of the tile
+	tileCenterX := float64(tileX)*tileSize + tileSize/2
+	tileCenterY := float64(tileY)*tileSize + tileSize/2
+
+	// Calculate the differences between the bullet and the tile center
+	dx := bulletX - tileCenterX
+	dy := bulletY - tileCenterY
+
+	// Determine the primary axis of collision
+	if math.Abs(dx) > math.Abs(dy) {
+		// Collision is more horizontal
+		if dx > 0 {
+			return 180 // Right side of the tile
+		}
+		return 0 // Left side of the tile
+	} else {
+		// Collision is more vertical
+		if dy > 0 {
+			return 90 // Bottom side of the tile
+		}
+		return 270 // Top side of the tile
+	}
 }
