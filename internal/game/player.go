@@ -7,7 +7,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 // Player represents a player in the game.
@@ -121,21 +120,5 @@ func (p *Player) Draw(screen *ebiten.Image) {
     opts.GeoM.Translate(p.X, p.Y)
 
     screen.DrawImage(p.Image, opts)
-
-    // Draw the bounding box border
-    p.DrawBoundingBoxBorder(screen)
 }
 
-
-func (p *Player) DrawBoundingBoxBorder(screen *ebiten.Image) {
-    left, top, right, bottom := p.GetBoundingBoxAt(p.X, p.Y)
-
-    // Define the color for the bounding box border
-    borderColor := color.RGBA{255, 0, 0, 255} // Red color with full opacity
-
-    // Draw the border of the bounding box
-    vector.StrokeLine(screen, float32(left), float32(top), float32(right), float32(top), 1, borderColor, true)
-    vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, borderColor, true)
-    vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, borderColor, true)
-    vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, borderColor, true)
-}

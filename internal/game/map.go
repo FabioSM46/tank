@@ -53,12 +53,10 @@ func (m *GameMap) Generate() {
 func (m *GameMap) CheckCollisionWithWall(px1, py1, px2, py2 float64) bool {
     tileSize := float64(TileSize)
     collisionDetected := false
-
     // Check if the player's bounding box is outside the map boundaries
     if px1 < 0 || py1 < 0 || px2 > float64(MapWidth)*tileSize || py2 > float64(MapHeight)*tileSize {
         return true // Collision detected with the map boundary
     }
-
     // Check collision with wall tiles
     for y := 0; y < MapHeight; y++ {
         for x := 0; x < MapWidth; x++ {
