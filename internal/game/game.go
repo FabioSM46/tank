@@ -24,7 +24,7 @@ func NewGame() *Game {
 
     return &Game{
         player1: NewPlayer(100, 100, player1ImagePath, gameMap),  
-        player2: NewAIPlayer(400, 300, player2ImagePath), 
+        player2: NewAIPlayer(400, 300, player2ImagePath, gameMap),
         gameMap: gameMap,
         bullets: []*Bullet{},
     }

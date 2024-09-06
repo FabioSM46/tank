@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/toolchain/src/math/rand"
 )
 
 // Bullet represents a bullet shot by the player.
@@ -105,7 +106,7 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
 		log.Fatal(err)
 	}
 
-	return &Player{
+	player := &Player{
 		X:        x,
 		Y:        y,
 		Speed:    2.0,
@@ -113,6 +114,24 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
 		Image:    img,
 		GameMap:  gameMap, // Set the game map reference
 	}
+
+	// Ensure the player does not start on a wall tile
+	playerWidth, playerHeight := img.Bounds().Dx(), img.Bounds().Dy()
+
+	// Calculate the bounding box for collision checking
+	left, top, right, bottom := player.GetBoundingBoxAt(x, y)
+
+	// Check if the initial position is on a wall tile, and reposition if necessary
+	for gameMap.CheckCollisionWithWall(left, top, right, bottom) {
+		// Generate new random x, y positions within the map bounds
+		player.X = float64(rand.Intn(MapWidth)*TileSize + playerWidth/2)
+		player.Y = float64(rand.Intn(MapHeight)*TileSize + playerHeight/2)
+
+		// Update the bounding box for the new position
+		left, top, right, bottom = player.GetBoundingBoxAt(player.X, player.Y)
+	}
+
+	return player
 }
 
 // GetBoundingBox returns the bounding box of the player as (left, top, right, bottom)
@@ -172,11 +191,14 @@ func (p *Player) GetBoundingBoxAt(x, y float64) (float64, float64, float64, floa
     halfWidth := float64(imgWidth) / 2
     halfHeight := float64(imgHeight) / 2
 
-    // Shift the bounding box by half the image width to the right and half the image height upward.
-    left := x - halfWidth + halfWidth
-    top := y - halfHeight + halfHeight
-    right := left + float64(imgWidth)
-    bottom := top + float64(imgHeight)
+    offsetX, offsetY := 16.0, 16.0 // Adjust this value to move the bounding box
+    margin := 5.0 // Adjust this value to make the bounding box narrower
+
+    // Calculate the bounding box with the applied offsets
+    left := x - halfWidth + margin + offsetX
+    top := y - halfHeight + margin + offsetY
+    right := left + float64(imgWidth) - 2*margin
+    bottom := top + float64(imgHeight) - 2*margin
 
     return left, top, right, bottom
 }
@@ -198,6 +220,23 @@ func (p *Player) Draw(screen *ebiten.Image) {
     // Translate to the tank's position
     opts.GeoM.Translate(p.X, p.Y)
 
+    // Draw the tank
     screen.DrawImage(p.Image, opts)
+
+    // Draw the bounding box
+    // Apply the same transformations to the bounding box
+    bboxOpts := &ebiten.DrawImageOptions{}
+    bboxOpts.GeoM.Translate(-float64(imgWidth)/2, -float64(imgHeight)/2)
+    bboxOpts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
+    bboxOpts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
+    bboxOpts.GeoM.Translate(p.X, p.Y)
+
+    left, top, right, bottom := p.GetBoundingBoxAt(p.X, p.Y)
+    
+    // Draw bounding box with red lines
+    vector.StrokeLine(screen, float32(left), float32(top), float32(right), float32(top), 1, color.RGBA{255, 0, 0, 255}, false)   // Top line
+    vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Right line
+    vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Bottom line
+    vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, color.RGBA{255, 0, 0, 255}, false) // Left line
 }
 

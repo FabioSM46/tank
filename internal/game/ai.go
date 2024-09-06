@@ -7,6 +7,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"golang.org/toolchain/src/math/rand"
 )
 
 // AIPlayer represents an AI-controlled player in the game.
@@ -19,19 +20,37 @@ type AIPlayer struct {
 }
 
 // NewAIPlayer creates a new AI player instance.
-func NewAIPlayer(x, y float64, imgPath string) *AIPlayer {
-    img, _, err := ebitenutil.NewImageFromFile(imgPath) // Load the tank image
-    if err != nil {
-        log.Fatal(err)
-    }
+func NewAIPlayer(x, y float64, imgPath string, gameMap *GameMap) *AIPlayer {
+	img, _, err := ebitenutil.NewImageFromFile(imgPath) // Load the tank image
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    return &AIPlayer{
-        X:     x,
-        Y:     y,
-        Speed: 1.5, // Slower speed for AI
-        Rotation: 0,
-        Image: img,
-    }
+	ai := &AIPlayer{
+		X:       x,
+		Y:       y,
+		Speed:   1.5, // Slower speed for AI
+		Rotation: 0,
+		Image:   img,
+	}
+
+	// Ensure the AI player does not start on a wall tile
+	aiWidth, aiHeight := img.Bounds().Dx(), img.Bounds().Dy()
+
+	// Calculate the bounding box for collision checking
+	left, top, right, bottom := ai.GetBoundingBoxAt(x, y)
+
+	// Check if the initial position is on a wall tile, and reposition if necessary
+	for gameMap.CheckCollisionWithWall(left, top, right, bottom) {
+		// Generate new random x, y positions within the map bounds
+		ai.X = float64(rand.Intn(MapWidth)*TileSize + aiWidth/2)
+		ai.Y = float64(rand.Intn(MapHeight)*TileSize + aiHeight/2)
+
+		// Update the bounding box for the new position
+		left, top, right, bottom = ai.GetBoundingBoxAt(ai.X, ai.Y)
+	}
+
+	return ai
 }
 
 // UpdateAI moves the AI towards the player.
@@ -44,11 +63,11 @@ func (ai *AIPlayer) UpdateAI(player *Player) {
     // Update rotation to face the player
     ai.Rotation = angle
 
-   // rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
+    //rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
 
     // Move the AI towards the player
-    ai.X += 0 //ai.Speed * math.Cos(rad)
-    ai.Y += 0//ai.Speed * math.Sin(rad)
+    ai.X +=0// ai.Speed * math.Cos(rad)
+    ai.Y +=0// ai.Speed * math.Sin(rad)
 }
 
 // Draw renders the AI player on the screen.
@@ -64,4 +83,22 @@ func (ai *AIPlayer) Draw(screen *ebiten.Image) {
     // Translate to the position on the screen
     opts.GeoM.Translate(ai.X, ai.Y)
     screen.DrawImage(ai.Image, opts)
+}
+
+// GetBoundingBoxAt returns the bounding box of the AI player at a specific position
+func (ai *AIPlayer) GetBoundingBoxAt(x, y float64) (float64, float64, float64, float64) {
+	imgWidth, imgHeight := ai.Image.Bounds().Dx(), ai.Image.Bounds().Dy()
+	halfWidth := float64(imgWidth) / 2
+	halfHeight := float64(imgHeight) / 2
+
+	// Define a margin to shrink the bounding box
+	margin := 4.0 // Adjust this value to make the bounding box smaller
+
+	// Apply margin to shrink the bounding box
+	left := x - halfWidth + margin
+	top := y - halfHeight + margin
+	right := x + halfWidth - margin
+	bottom := y + halfHeight - margin
+
+	return left, top, right, bottom
 }
