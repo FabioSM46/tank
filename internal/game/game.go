@@ -3,6 +3,7 @@ package game
 import (
 	"math"
 	"path/filepath"
+	"time"
 
 	"github.com/FabioSM46/tank/config"
 	"github.com/FabioSM46/tank/pkg/utils"
@@ -32,40 +33,42 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
+	// Get the current time
+    currentTime := float64(time.Now().UnixNano()) / float64(time.Second)
+
 	g.player1.Update()
-	g.player2.UpdateAI(g.player1)
+    g.player2.UpdateAI(g.player1, currentTime, g)
 
-	// Update bullets
-	for i := len(g.bullets) - 1; i >= 0; i-- {
-		bullet := g.bullets[i]
-		bullet.Update()
-	
-		// Check for wall collision
-		if g.gameMap.CheckCollisionWithWall(bullet.X, bullet.Y, bullet.X, bullet.Y) {
-			if bullet.BounceCount < 2 {
-				// Calculate normal angle of the wall for bouncing
-				normalAngle := g.calculateWallNormal(bullet.X, bullet.Y)
-				bullet.Bounce(normalAngle)
-			} else {
-				// Remove the bullet after two bounces
-				g.bullets = removeBullet(g.bullets, i)
-				continue // Continue to the next iteration to avoid processing an invalid index
-			}
-		}
-	
-		// Remove bullets that are out of bounds
-		if bullet.IsOutOfBounds() {
-			g.bullets = removeBullet(g.bullets, i)
-		}
-	}
-	
+    // Update bullets
+    for i := len(g.bullets) - 1; i >= 0; i-- {
+        bullet := g.bullets[i]
+        bullet.Update()
+    
+        // Check for wall collision
+        if g.gameMap.CheckCollisionWithWall(bullet.X, bullet.Y, bullet.X, bullet.Y) {
+            if bullet.BounceCount < 2 {
+                // Calculate normal angle of the wall for bouncing
+                normalAngle := g.calculateWallNormal(bullet.X, bullet.Y)
+                bullet.Bounce(normalAngle)
+            } else {
+                // Remove the bullet after two bounces
+                g.bullets = removeBullet(g.bullets, i)
+                continue // Continue to the next iteration to avoid processing an invalid index
+            }
+        }
+    
+        // Remove bullets that are out of bounds
+        if bullet.IsOutOfBounds() {
+            g.bullets = removeBullet(g.bullets, i)
+        }
+    }
 
-	// Check for shooting input
-	if ebiten.IsKeyPressed(ebiten.KeySpace) {
-		g.ShootBullet(g.player1)
-	}
+    // Check for shooting input
+    if ebiten.IsKeyPressed(ebiten.KeySpace) {
+        g.ShootBullet(g.player1)
+    }
 
-	return nil
+    return nil
 }
 
 func removeBullet(bullets []*Bullet, i int) []*Bullet {
@@ -73,15 +76,16 @@ func removeBullet(bullets []*Bullet, i int) []*Bullet {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	g.gameMap.Draw(screen)
-	g.player1.Draw(screen)
-	g.player2.Draw(screen)
+    g.gameMap.Draw(screen)
+    g.player1.Draw(screen)
+    g.player2.Draw(screen) 
 
-	// Draw bullets
-	for _, bullet := range g.bullets {
-		bullet.Draw(screen)
-	}
+    // Draw bullets
+    for _, bullet := range g.bullets {
+        bullet.Draw(screen)
+    }
 }
+
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
     return utils.ScreenWidth, utils.ScreenHeight
