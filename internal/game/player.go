@@ -19,18 +19,24 @@ type Bullet struct {
     BounceCount int    // Number of times the bullet has bounced
 }
 
-// NewBullet creates a new bullet instance.
+// NewBullet creates a new bullet instance starting slightly in front of the tank.
 func NewBullet(player *Player) *Bullet {
+	// Calculate the center of the tank
 	imgWidth, imgHeight := player.Image.Bounds().Dx(), player.Image.Bounds().Dy()
 	centerX := player.X + float64(imgWidth)/2
 	centerY := player.Y + float64(imgHeight)/2
 
+	// Calculate the starting position in front of the tank
+	rad := player.Rotation * math.Pi / 180 // Convert rotation angle to radians
+	offsetX := 20 * math.Cos(rad) // Distance in front of the tank
+	offsetY := 20 * math.Sin(rad) // Distance in front of the tank
+
 	return &Bullet{
-		X:        centerX,
-		Y:        centerY,
-		Speed:    5.0,
-		Rotation: player.Rotation,
-        BounceCount: 0,
+		X:          centerX + offsetX,
+		Y:          centerY + offsetY,
+		Speed:      5.0,
+		Rotation:   player.Rotation,
+		BounceCount: 0,
 	}
 }
 
@@ -43,13 +49,33 @@ func (b *Bullet) Update() {
 
 // Bounce changes the bullet's direction when it hits a wall and adjusts its position slightly.
 func (b *Bullet) Bounce(normalAngle float64) {
-	b.Rotation = 2*normalAngle - b.Rotation // Reflect the bullet's direction
+	// Convert angles to radians
+	bulletRad := b.Rotation * math.Pi / 180
+	normalRad := normalAngle * math.Pi / 180
+
+	// Calculate the incoming vector direction
+	incomingX := math.Cos(bulletRad)
+	incomingY := math.Sin(bulletRad)
+
+	// Calculate the normal vector components
+	normalX := math.Cos(normalRad)
+	normalY := math.Sin(normalRad)
+
+	// Calculate the dot product
+	dotProduct := incomingX*normalX + incomingY*normalY
+
+	// Calculate the reflected vector
+	reflectedX := incomingX - 2*dotProduct*normalX
+	reflectedY := incomingY - 2*dotProduct*normalY
+
+	// Convert back to rotation angle
+	b.Rotation = math.Atan2(reflectedY, reflectedX) * 180 / math.Pi
+
 	b.BounceCount++
 
 	// Move the bullet slightly away from the wall to prevent it from getting stuck
-	rad := b.Rotation * math.Pi / 180
-	b.X += b.Speed * math.Cos(rad)
-	b.Y += b.Speed * math.Sin(rad)
+	b.X += b.Speed * reflectedX
+	b.Y += b.Speed * reflectedY
 }
 
 // IsOutOfBounds checks if the bullet is outside the game area.
