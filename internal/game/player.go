@@ -84,6 +84,7 @@ type Player struct {
 	Color     color.Color // Player color
 	Image     *ebiten.Image // Tank image
 	GameMap   *GameMap    // Reference to the game map for collision detection
+	Health       int	// Health points
 }
 
 // NewPlayer creates a new player instance.
@@ -100,6 +101,7 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
 		Rotation: 0, // Initial rotation angle
 		Image:    img,
 		GameMap:  gameMap, // Set the game map reference
+		Health:   100,
 	}
 
 	// Ensure the player does not start on a wall tile
@@ -225,4 +227,11 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Right line
 	vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Bottom line
 	vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, color.RGBA{255, 0, 0, 255}, false) // Left line
+}
+
+func (p *Player) TakeDamage(amount int) {
+    p.Health -= amount
+    if p.Health < 0 {
+        p.Health = 0
+    }
 }

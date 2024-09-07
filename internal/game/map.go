@@ -2,6 +2,7 @@ package game
 
 import (
 	"image/color"
+	"math"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -95,3 +96,40 @@ func (m *GameMap) Draw(screen *ebiten.Image) {
     }
 }
 
+// CheckLineOfSight checks if there is a clear line of sight between two points
+func (gm *GameMap) CheckLineOfSight(x1, y1, x2, y2 float64) bool {
+    // Calculate the number of steps needed for the line trace
+    steps := int(math.Max(math.Abs(x2-x1), math.Abs(y2-y1)) / float64(TileSize))
+    if steps == 0 {
+        return true // If no steps, consider it a clear line of sight
+    }
+    dx := (x2 - x1) / float64(steps)
+    dy := (y2 - y1) / float64(steps)
+
+    // Trace the line from (x1, y1) to (x2, y2) in small increments
+    for i := 0; i <= steps; i++ {
+        currentX := x1 + dx*float64(i)
+        currentY := y1 + dy*float64(i)
+
+        // Check if the current position is within a wall tile
+        if gm.IsWallTileAt(currentX, currentY) {
+            // Add debug output to help trace issues
+            return false // There's an obstacle in the way
+        }
+    }
+
+    return true // No obstacle detected
+}
+
+
+// IsWallTileAt checks if a given point is within a wall tile
+func (gm *GameMap) IsWallTileAt(x, y float64) bool {
+	tileX := int(x / float64(TileSize))
+	tileY := int(y / float64(TileSize))
+
+	// Check for bounds and if the tile is a wall
+	if tileX >= 0 && tileX < MapWidth && tileY >= 0 && tileY < MapHeight {
+		return gm.grid[tileY][tileX] == WallTile
+	}
+	return false
+}
