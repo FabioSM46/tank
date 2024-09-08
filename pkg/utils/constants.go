@@ -2,6 +2,6 @@ package utils
 
 const (
     ScreenWidth  = 800
-    ScreenHeight = 600
+    ScreenHeight = 630
     PlayerSpeed  = 2.0
 )

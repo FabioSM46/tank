@@ -127,6 +127,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
         bullet.Draw(screen)
     }
 
+    g.drawHealthDisplay(screen)
+
     if g.isPaused {
         // Screen dimensions
         screenWidth, screenHeight := screen.Bounds().Dx(), screen.Bounds().Dy()
@@ -156,6 +158,25 @@ func (g *Game) Draw(screen *ebiten.Image) {
         
         ebitenutil.DebugPrintAt(screen, restartText, restartX, restartY)
     }
+}
+
+func (g *Game) drawHealthDisplay(screen *ebiten.Image) {
+     // Define text positions within the black band
+     bandHeight := 30
+     bandY := utils.ScreenHeight - bandHeight  
+     bandX := utils.ScreenWidth 
+    
+     // Draw player 1 health
+    healthText := "Player Health: " + strconv.Itoa(g.player1.Health)
+    ebitenutil.DebugPrintAt(screen, healthText, 10, bandY+10)
+
+    // Draw player 2 health
+    healthText = "AI Health: " + strconv.Itoa(g.player2.Health)
+    ebitenutil.DebugPrintAt(screen, healthText, bandX-100, bandY+10)
+
+    // Draw scores
+    scoreText := "Player Score: " + strconv.Itoa(g.player1Score) + " | AI Score: " + strconv.Itoa(g.player2Score)
+    ebitenutil.DebugPrintAt(screen, scoreText, (bandX/2)-100, bandY+10)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
