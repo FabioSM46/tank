@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -205,7 +204,6 @@ func (ai *AIPlayer) Draw(screen *ebiten.Image) {
 func (ai *AIPlayer) TakeDamage(amount int, game *Game) {
     ai.Health -= amount
     if ai.Health <= 0 {
-        fmt.Println("AI Health: ", ai.Health)
-        game.HandleAIDeath(ai) // Notify the game of AI death
+        game.HandleAIDeath(ai) 
     }
 }

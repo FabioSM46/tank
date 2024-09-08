@@ -14,6 +14,7 @@ type Bullet struct {
 	VelX, VelY  float64 // Velocity components
 	Rotation    float64 // Direction in degrees
 	BounceCount int     // Number of times the bullet has bounced
+	Owner       interface{} // Owner of the bullet (can be Player or AIPlayer)
 }
 
 // NewBullet creates a new bullet instance starting slightly in front of the tank.
@@ -40,6 +41,7 @@ func NewBullet(player *Player) *Bullet {
 		VelY:       velY,
 		Rotation:   player.Rotation,
 		BounceCount: 0,
+		Owner:      player,
 	}
 }
 
@@ -67,6 +69,7 @@ func NewBulletFromAI(ai *AIPlayer) *Bullet {
         VelY:       velY,
         Rotation:   ai.Rotation,
         BounceCount: 0,
+		Owner:      ai,
     }
 }
 

@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -155,7 +154,6 @@ func (p *Player) Draw(screen *ebiten.Image) {
 func (p *Player) TakeDamage(amount int, game *Game) {
     p.Health -= amount
     if p.Health <= 0 {
-		fmt.Println("Player Health: ", p.Health)
         game.HandlePlayerDeath(p) 
     }
 }

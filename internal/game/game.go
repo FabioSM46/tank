@@ -71,14 +71,15 @@ func (g *Game) Update() error {
             }
         }
 
-        if g.checkBulletCollisionWithTank(bullet, g.player1) {
-            g.player1.TakeDamage(10, g) // Pass the game instance
+        // Check for bullet collision with tanks, ignoring bullets from the same owner
+        if bullet.Owner != g.player1 && g.checkBulletCollisionWithTank(bullet, g.player1) {
+            g.player1.TakeDamage(10, g) // Pass the game instance to handle death
             g.bullets = removeBullet(g.bullets, i)
             continue
         }
 
-        if g.checkBulletCollisionWithTank(bullet, g.player2) {
-            g.player2.TakeDamage(10, g) // Pass the game instance
+        if bullet.Owner != g.player2 && g.checkBulletCollisionWithTank(bullet, g.player2) {
+            g.player2.TakeDamage(10, g) // Pass the game instance to handle death
             g.bullets = removeBullet(g.bullets, i)
             continue
         }
@@ -212,7 +213,7 @@ func (g *Game) calculateWallNormal(bulletX, bulletY float64) float64 {
 func (g *Game) HandlePlayerDeath(player *Player) {
     // Check if the player is the winner
         g.winner = "Player 1"
-        g.player1Score++
+        g.player2Score++
 
     // Pause the game
         g.isPaused = true
@@ -221,7 +222,7 @@ func (g *Game) HandlePlayerDeath(player *Player) {
 
 func (g *Game) HandleAIDeath(ai *AIPlayer) {
         g.winner = "AI"
-        g.player2Score++
+        g.player1Score++
 
         g.isPaused = true
 }
