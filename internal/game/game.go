@@ -26,7 +26,7 @@ type Game struct {
 func NewGame() *Game {
     // Construct the paths to assets using the working directory
     player1ImagePath := filepath.Join(config.WorkingDir, "assets/images/tank.png")
-    player2ImagePath := filepath.Join(config.WorkingDir, "assets/images/tank.png")
+    player2ImagePath := filepath.Join(config.WorkingDir, "assets/images/tank-ai.png")
 
     gameMap := NewGameMap()
 

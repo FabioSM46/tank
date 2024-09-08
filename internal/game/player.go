@@ -7,7 +7,6 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/toolchain/src/math/rand"
 )
 
@@ -150,14 +149,6 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	bboxOpts.GeoM.Rotate(p.Rotation * math.Pi / 180) // Convert to radians
 	bboxOpts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
 	bboxOpts.GeoM.Translate(p.X, p.Y)
-
-	left, top, right, bottom := p.GetBoundingBox(p.X, p.Y)
-	
-	// Draw bounding box with red lines
-	vector.StrokeLine(screen, float32(left), float32(top), float32(right), float32(top), 1, color.RGBA{255, 0, 0, 255}, false)   // Top line
-	vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Right line
-	vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Bottom line
-	vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, color.RGBA{255, 0, 0, 255}, false) // Left line
 }
 
 func (p *Player) Shoot(currentTime float64, game *Game) {
