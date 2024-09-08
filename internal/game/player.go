@@ -18,6 +18,8 @@ type Player struct {
 	Rotation  float64     // Rotation angle in degrees
 	Color     color.Color // Player color
 	Image     *ebiten.Image // Tank image
+	lastShotTime  float64     // Time of the last shot
+    shootCooldown float64     // Time between shots (in seconds)
 	GameMap   *GameMap    // Reference to the game map for collision detection
 	Health       int	// Health points
 }
@@ -35,6 +37,8 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *Play
 		Speed:    2.0,
 		Rotation: 0, // Initial rotation angle
 		Image:    img,
+		lastShotTime: 0,
+        shootCooldown: 2.0, 
 		GameMap:  gameMap, // Set the game map reference
 		Health:   100,
 	}
@@ -58,42 +62,47 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *Play
 	return player
 }
 
-func (p *Player) Update() {
-	rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
+func (p *Player) Update(currentTime float64, game *Game) {
+    rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
 
-	// Calculate the potential new position
-	newX, newY := p.X, p.Y
-	if ebiten.IsKeyPressed(ebiten.KeyUp) {
-		newX += p.Speed * math.Cos(rad)
-		newY += p.Speed * math.Sin(rad)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyDown) {
-		newX -= p.Speed * math.Cos(rad)
-		newY -= p.Speed * math.Sin(rad)
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-		p.Rotation -= 2 // Rotate left
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		p.Rotation += 2 // Rotate right
-	}
+    // Calculate the potential new position
+    newX, newY := p.X, p.Y
+    if ebiten.IsKeyPressed(ebiten.KeyUp) {
+        newX += p.Speed * math.Cos(rad)
+        newY += p.Speed * math.Sin(rad)
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyDown) {
+        newX -= p.Speed * math.Cos(rad)
+        newY -= p.Speed * math.Sin(rad)
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+        p.Rotation -= 2 // Rotate left
+    }
+    if ebiten.IsKeyPressed(ebiten.KeyRight) {
+        p.Rotation += 2 // Rotate right
+    }
 
-	// Calculate the player's bounding box at the new position
-	newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBox(newX, newY)
+    // Check for shooting input
+    if ebiten.IsKeyPressed(ebiten.KeySpace) {
+        p.Shoot(currentTime, game)
+    }
 
-	// Check for wall collision
-	if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
-		// Update the player position if no collision
-		p.X = newX
-		p.Y = newY
-	}
+    // Calculate the player's bounding box at the new position
+    newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBox(newX, newY)
 
-	// Normalize the rotation angle to stay within 0-360 degrees
-	if p.Rotation >= 360 {
-		p.Rotation -= 360
-	} else if p.Rotation < 0 {
-		p.Rotation += 360
-	}
+    // Check for wall collision
+    if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
+        // Update the player position if no collision
+        p.X = newX
+        p.Y = newY
+    }
+
+    // Normalize the rotation angle to stay within 0-360 degrees
+    if p.Rotation >= 360 {
+        p.Rotation -= 360
+    } else if p.Rotation < 0 {
+        p.Rotation += 360
+    }
 }
 
 // GetBoundingBox returns the bounding box of the player at a specific position
@@ -149,6 +158,14 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	vector.StrokeLine(screen, float32(right), float32(top), float32(right), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Right line
 	vector.StrokeLine(screen, float32(right), float32(bottom), float32(left), float32(bottom), 1, color.RGBA{255, 0, 0, 255}, false) // Bottom line
 	vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, color.RGBA{255, 0, 0, 255}, false) // Left line
+}
+
+func (p *Player) Shoot(currentTime float64, game *Game) {
+    if currentTime-p.lastShotTime >= p.shootCooldown {
+        bullet := NewBullet(p) // Create a new bullet
+        game.bullets = append(game.bullets, bullet) // Add bullet to the game's bullet list
+        p.lastShotTime = currentTime // Update the last shot time
+    }
 }
 
 func (p *Player) TakeDamage(amount int, game *Game) {

@@ -52,7 +52,7 @@ func (g *Game) Update() error {
 
     currentTime := float64(time.Now().UnixNano()) / float64(time.Second)
 
-    g.player1.Update()
+    g.player1.Update(currentTime, g)
     g.player2.UpdateAI(g.player1, currentTime, g)
 
     // Update bullets
@@ -88,11 +88,6 @@ func (g *Game) Update() error {
         if bullet.IsOutOfBounds() {
             g.bullets = removeBullet(g.bullets, i)
         }
-    }
-
-    // Check for shooting input
-    if ebiten.IsKeyPressed(ebiten.KeySpace) {
-        g.ShootBullet(g.player1)
     }
 
     return nil
