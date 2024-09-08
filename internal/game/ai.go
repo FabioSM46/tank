@@ -47,7 +47,7 @@ func NewAIPlayer(x, y float64, imgPath string, gameMap *GameMap) *AIPlayer {
     imgWidth, imgHeight := img.Bounds().Dx(), img.Bounds().Dy()
 
     // Calculate the bounding box for collision checking
-    left, top, right, bottom := aiPlayer.GetBoundingBoxAt(x, y)
+    left, top, right, bottom := aiPlayer.GetBoundingBox(x, y)
 
     // Check if the initial position is on a wall tile, and reposition if necessary
     for gameMap.CheckCollisionWithWall(left, top, right, bottom) {
@@ -56,14 +56,14 @@ func NewAIPlayer(x, y float64, imgPath string, gameMap *GameMap) *AIPlayer {
         aiPlayer.Y = float64(rand.Intn(MapHeight)*TileSize + imgHeight/2)
 
         // Update the bounding box for the new position
-        left, top, right, bottom = aiPlayer.GetBoundingBoxAt(aiPlayer.X, aiPlayer.Y)
+        left, top, right, bottom = aiPlayer.GetBoundingBox(aiPlayer.X, aiPlayer.Y)
     }
 
     return aiPlayer
 }
 
-// GetBoundingBoxAt returns the bounding box of the AI player at a specific position.
-func (ai *AIPlayer) GetBoundingBoxAt(x, y float64) (float64, float64, float64, float64) {
+// GetBoundingBox returns the bounding box of the AI player at a specific position.
+func (ai *AIPlayer) GetBoundingBox(x, y float64) (float64, float64, float64, float64) {
     imgWidth, imgHeight := ai.Image.Bounds().Dx(), ai.Image.Bounds().Dy()
     halfWidth := float64(imgWidth) / 2
     halfHeight := float64(imgHeight) / 2
@@ -85,17 +85,30 @@ func (ai *AIPlayer) UpdateAI(player *Player, currentTime float64, game *Game) {
     dx := player.X - ai.X
     dy := player.Y - ai.Y
     angle := math.Atan2(dy, dx) * 180 / math.Pi // Convert radians to degrees
-    px1, py1, px2, py2 := player.GetBoundingBox()
 
-    // Update rotation to face the player
-    ai.Rotation = angle
+    // Smooth rotation towards the player
+    rotationSpeed := 2.0 // Degrees per frame
+    deltaAngle := angle - ai.Rotation
+    if deltaAngle > 180 {
+        deltaAngle -= 360
+    } else if deltaAngle < -180 {
+        deltaAngle += 360
+    }
 
-    // Try moving towards the player
-     ai.tryMove()
+    if deltaAngle > rotationSpeed {
+        ai.Rotation += rotationSpeed
+    } else if deltaAngle < -rotationSpeed {
+        ai.Rotation -= rotationSpeed
+    } else {
+        ai.Rotation = angle
+    }
+
+    // Attempt to move towards the player
+    ai.tryMove()
 
     // Check if the AI should shoot
     if currentTime-ai.lastShotTime >= ai.shootCooldown {
-        if ai.GameMap.CheckLineOfSight(player.X, player.Y, ai.X, ai.Y) && CheckLineRectIntersection(ai.X, ai.Y, player.X, player.Y, px1, py1, px2, py2) {
+        if ai.GameMap.CheckLineOfSight(player.X, player.Y, ai.X, ai.Y)  {
             ai.ShootBullet(game)
             ai.lastShotTime = currentTime
         }
@@ -108,7 +121,7 @@ func (ai *AIPlayer) tryMove() {
 
     // Calculate the potential new position
     newX, newY := ai.X+ai.Speed*math.Cos(rad), ai.Y+ai.Speed*math.Sin(rad)
-    newAx1, newAy1, newAx2, newAy2 := ai.GetBoundingBoxAt(newX, newY)
+    newAx1, newAy1, newAx2, newAy2 := ai.GetBoundingBox(newX, newY)
 
     if !ai.GameMap.CheckCollisionWithWall(newAx1, newAy1, newAx2, newAy2) {
         // No collision; move the AI tank
@@ -142,7 +155,7 @@ func (ai *AIPlayer) avoidObstacle() {
 
         // Calculate new potential position
         newX, newY := ai.X+ai.Speed*math.Cos(rad), ai.Y+ai.Speed*math.Sin(rad)
-        newAx1, newAy1, newAx2, newAy2 := ai.GetBoundingBoxAt(newX, newY)
+        newAx1, newAy1, newAx2, newAy2 := ai.GetBoundingBox(newX, newY)
 
         // Check if this new position is free of collisions
         if !ai.GameMap.CheckCollisionWithWall(newAx1, newAy1, newAx2, newAy2) {
@@ -188,33 +201,10 @@ func (ai *AIPlayer) Draw(screen *ebiten.Image) {
     screen.DrawImage(ai.Image, opts)
 }
 
-func CheckLineRectIntersection(x1, y1, x2, y2, left, top, right, bottom float64) bool {
-    // Check if the line segment intersects with any of the rectangle's edges
-    if LineIntersect(x1, y1, x2, y2, left, top, left, bottom) ||
-        LineIntersect(x1, y1, x2, y2, left, top, right, top) ||
-        LineIntersect(x1, y1, x2, y2, right, top, right, bottom) ||
-        LineIntersect(x1, y1, x2, y2, left, bottom, right, bottom) {
-        return true
-    }
-    return false
-}
-
-// LineIntersect checks if two line segments intersect
-func LineIntersect(x1, y1, x2, y2, x3, y3, x4, y4 float64) bool {
-    denom := (y4-y3)*(x2-x1) - (x4-x3)*(y2-y1)
-    if denom == 0 {
-        return false // Lines are parallel
-    }
-
-    ua := ((x4-x3)*(y1-y3) - (y4-y3)*(x1-x3)) / denom
-    ub := ((x2-x1)*(y1-y3) - (y2-y1)*(x1-x3)) / denom
-
-    return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1
-}
-
-func (ai *AIPlayer) TakeDamage(amount int) {
+func (ai *AIPlayer) TakeDamage(amount int, game *Game) {
     ai.Health -= amount
-    if ai.Health < 0 {
+    if ai.Health <= 0 {
         ai.Health = 0
+        game.HandleAIDeath(ai) // Notify the game of AI death
     }
 }

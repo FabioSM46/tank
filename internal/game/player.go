@@ -43,7 +43,7 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
 	playerWidth, playerHeight := img.Bounds().Dx(), img.Bounds().Dy()
 
 	// Calculate the bounding box for collision checking
-	left, top, right, bottom := player.GetBoundingBoxAt(x, y)
+	left, top, right, bottom := player.GetBoundingBox(x, y)
 
 	// Check if the initial position is on a wall tile, and reposition if necessary
 	for gameMap.CheckCollisionWithWall(left, top, right, bottom) {
@@ -52,23 +52,10 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
 		player.Y = float64(rand.Intn(MapHeight)*TileSize + playerHeight/2)
 
 		// Update the bounding box for the new position
-		left, top, right, bottom = player.GetBoundingBoxAt(player.X, player.Y)
+		left, top, right, bottom = player.GetBoundingBox(player.X, player.Y)
 	}
 
 	return player
-}
-
-// GetBoundingBox returns the bounding box of the player as (left, top, right, bottom)
-func (p *Player) GetBoundingBox() (float64, float64, float64, float64) {
-	imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
-	halfWidth := float64(imgWidth) / 2
-	halfHeight := float64(imgHeight) / 2
-	left := p.X - halfWidth
-	top := p.Y - halfHeight
-	right := p.X + halfWidth
-	bottom := p.Y + halfHeight
-
-	return left, top, right, bottom
 }
 
 func (p *Player) Update() {
@@ -92,7 +79,7 @@ func (p *Player) Update() {
 	}
 
 	// Calculate the player's bounding box at the new position
-	newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBoxAt(newX, newY)
+	newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBox(newX, newY)
 
 	// Check for wall collision
 	if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
@@ -109,8 +96,8 @@ func (p *Player) Update() {
 	}
 }
 
-// GetBoundingBoxAt returns the bounding box of the player at a specific position
-func (p *Player) GetBoundingBoxAt(x, y float64) (float64, float64, float64, float64) {
+// GetBoundingBox returns the bounding box of the player at a specific position
+func (p *Player) GetBoundingBox(x, y float64) (float64, float64, float64, float64) {
 	imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
 	halfWidth := float64(imgWidth) / 2
 	halfHeight := float64(imgHeight) / 2
@@ -155,7 +142,7 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	bboxOpts.GeoM.Translate(float64(imgWidth)/2, float64(imgHeight)/2)
 	bboxOpts.GeoM.Translate(p.X, p.Y)
 
-	left, top, right, bottom := p.GetBoundingBoxAt(p.X, p.Y)
+	left, top, right, bottom := p.GetBoundingBox(p.X, p.Y)
 	
 	// Draw bounding box with red lines
 	vector.StrokeLine(screen, float32(left), float32(top), float32(right), float32(top), 1, color.RGBA{255, 0, 0, 255}, false)   // Top line
@@ -164,9 +151,10 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	vector.StrokeLine(screen, float32(left), float32(bottom), float32(left), float32(top), 1, color.RGBA{255, 0, 0, 255}, false) // Left line
 }
 
-func (p *Player) TakeDamage(amount int) {
+func (p *Player) TakeDamage(amount int, game *Game) {
     p.Health -= amount
-    if p.Health < 0 {
+    if p.Health <= 0 {
         p.Health = 0
+        game.HandlePlayerDeath(p) 
     }
 }
