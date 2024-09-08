@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -23,7 +24,7 @@ type Player struct {
 }
 
 // NewPlayer creates a new player instance.
-func NewPlayer(x, y float64, imgPath string, gameMap *GameMap) *Player {
+func NewPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *Player {
 	img, _, err := ebitenutil.NewImageFromFile(imgPath) // Load the tank image
 	if err != nil {
 		log.Fatal(err)
@@ -154,7 +155,7 @@ func (p *Player) Draw(screen *ebiten.Image) {
 func (p *Player) TakeDamage(amount int, game *Game) {
     p.Health -= amount
     if p.Health <= 0 {
-        p.Health = 0
+		fmt.Println("Player Health: ", p.Health)
         game.HandlePlayerDeath(p) 
     }
 }

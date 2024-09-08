@@ -3,11 +3,13 @@ package game
 import (
 	"math"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/FabioSM46/tank/config"
 	"github.com/FabioSM46/tank/pkg/utils"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
 type Game struct {
@@ -29,8 +31,8 @@ func NewGame() *Game {
     gameMap := NewGameMap()
 
     return &Game{
-        player1: NewPlayer(100, 100, player1ImagePath, gameMap),  
-        player2: NewAIPlayer(400, 300, player2ImagePath, gameMap),
+        player1: NewPlayer(100, 100, player1ImagePath, gameMap, 100),  
+        player2: NewAIPlayer(400, 300, player2ImagePath, gameMap, 100),
         gameMap: gameMap,
         bullets: []*Bullet{},
         isPaused: false,
@@ -41,6 +43,13 @@ func NewGame() *Game {
 }
 
 func (g *Game) Update() error {
+    if g.isPaused {
+        if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+            g.RestartGame()
+        }
+        return nil
+    }
+
     currentTime := float64(time.Now().UnixNano()) / float64(time.Second)
 
     g.player1.Update()
@@ -116,11 +125,40 @@ func removeBullet(bullets []*Bullet, i int) []*Bullet {
 func (g *Game) Draw(screen *ebiten.Image) {
     g.gameMap.Draw(screen)
     g.player1.Draw(screen)
-    g.player2.Draw(screen) 
+    g.player2.Draw(screen)
 
-    // Draw bullets
     for _, bullet := range g.bullets {
         bullet.Draw(screen)
+    }
+
+    if g.isPaused {
+        // Screen dimensions
+        screenWidth, screenHeight := screen.Bounds().Dx(), screen.Bounds().Dy()
+        
+        // Create a temporary image to measure text size
+        message := "Paused"
+        scoreText := "Player Score: " + strconv.Itoa(g.player1Score) + " | AI Score: " + strconv.Itoa(g.player2Score)
+        restartText := "Press Enter to Restart"
+        
+        // Draw the "Paused" message
+        messageWidth := len(message) * 8 // Approximate character width, adjust as needed
+        messageHeight := 16              // Approximate character height, adjust as needed
+        messageX := (screenWidth - messageWidth) / 2
+        messageY := (screenHeight - messageHeight * 3) / 2
+        
+        ebitenutil.DebugPrintAt(screen, message, messageX, messageY)
+
+        // Draw the score text
+        scoreX := (screenWidth - len(scoreText)*8) / 2
+        scoreY := messageY + messageHeight
+        
+        ebitenutil.DebugPrintAt(screen, scoreText, scoreX, scoreY)
+
+        // Draw the restart instruction
+        restartX := (screenWidth - len(restartText)*8) / 2
+        restartY := scoreY + messageHeight
+        
+        ebitenutil.DebugPrintAt(screen, restartText, restartX, restartY)
     }
 }
 
@@ -177,11 +215,22 @@ func (g *Game) HandlePlayerDeath(player *Player) {
         g.player1Score++
 
     // Pause the game
-    g.isPaused = true
+        g.isPaused = true
 }
 
 
 func (g *Game) HandleAIDeath(ai *AIPlayer) {
-    
+        g.winner = "AI"
+        g.player2Score++
+
+        g.isPaused = true
 }
 
+func (g *Game) RestartGame() {
+    // Reset game state
+    g.player1 = NewPlayer(100, 100, filepath.Join(config.WorkingDir, "assets/images/tank.png"), g.gameMap, 100)
+    g.player2 = NewAIPlayer(400, 300, filepath.Join(config.WorkingDir, "assets/images/tank.png"), g.gameMap, 100)
+    g.bullets = []*Bullet{}
+    g.isPaused = false
+    g.winner = ""
+}

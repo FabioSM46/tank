@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -25,7 +26,7 @@ type AIPlayer struct {
 }
 
 // NewAIPlayer creates a new AI player instance.
-func NewAIPlayer(x, y float64, imgPath string, gameMap *GameMap) *AIPlayer {
+func NewAIPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *AIPlayer {
     img, _, err := ebitenutil.NewImageFromFile(imgPath)
     if err != nil {
         log.Fatal(err)
@@ -204,7 +205,7 @@ func (ai *AIPlayer) Draw(screen *ebiten.Image) {
 func (ai *AIPlayer) TakeDamage(amount int, game *Game) {
     ai.Health -= amount
     if ai.Health <= 0 {
-        ai.Health = 0
+        fmt.Println("AI Health: ", ai.Health)
         game.HandleAIDeath(ai) // Notify the game of AI death
     }
 }
