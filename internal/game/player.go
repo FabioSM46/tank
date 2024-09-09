@@ -10,22 +10,20 @@ import (
 	"golang.org/toolchain/src/math/rand"
 )
 
-// Player represents a player in the game.
 type Player struct {
-	X, Y      float64     // Position
-	Speed     float64     // Movement speed
-	Rotation  float64     // Rotation angle in degrees
+	X, Y      float64 // Position
+	Speed     float64 // Movement speed
+	Rotation  float64 // Rotation angle in degrees
 	Color     color.Color // Player color
 	Image     *ebiten.Image // Tank image
-	lastShotTime  float64     // Time of the last shot
-    shootCooldown float64     // Time between shots (in seconds)
-	GameMap   *GameMap    // Reference to the game map for collision detection
-	Health       int	// Health points
+	lastShotTime  float64 // Time of the last shot
+    shootCooldown float64 // Time between shots (in seconds)
+	GameMap   *GameMap // Reference to the game map for collision detection
+	Health       int // Health points
 }
 
-// NewPlayer creates a new player instance.
 func NewPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *Player {
-	img, _, err := ebitenutil.NewImageFromFile(imgPath) // Load the tank image
+	img, _, err := ebitenutil.NewImageFromFile(imgPath) 
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,11 +32,11 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *Play
 		X:        x,
 		Y:        y,
 		Speed:    2.0,
-		Rotation: 0, // Initial rotation angle
+		Rotation: 0, 
 		Image:    img,
 		lastShotTime: 0,
         shootCooldown: 2.0, 
-		GameMap:  gameMap, // Set the game map reference
+		GameMap:  gameMap,
 		Health:   100,
 	}
 
@@ -104,7 +102,6 @@ func (p *Player) Update(currentTime float64, game *Game) {
     }
 }
 
-// GetBoundingBox returns the bounding box of the player at a specific position
 func (p *Player) GetBoundingBox(x, y float64) (float64, float64, float64, float64) {
 	imgWidth, imgHeight := p.Image.Bounds().Dx(), p.Image.Bounds().Dy()
 	halfWidth := float64(imgWidth) / 2
@@ -122,7 +119,6 @@ func (p *Player) GetBoundingBox(x, y float64) (float64, float64, float64, float6
 	return left, top, right, bottom
 }
 
-// Draw renders the player on the screen.
 func (p *Player) Draw(screen *ebiten.Image) {
 	opts := &ebiten.DrawImageOptions{}
 

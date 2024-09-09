@@ -11,20 +11,19 @@ import (
 )
 
 type AIPlayer struct {
-    X, Y          float64     // Position
-    Speed         float64     // Movement speed
-    Rotation      float64     // Rotation angle in degrees
+    X, Y          float64 // Position
+    Speed         float64 // Movement speed
+    Rotation      float64 // Rotation angle in degrees
     Color         color.Color // AI color
     Image         *ebiten.Image // Tank image
-    lastShotTime  float64     // Time of the last shot
-    shootCooldown float64     // Time between shots (in seconds)
-    GameMap       *GameMap    // Reference to the game map for collision detection
-    stuckCounter  int         // Counter to detect if AI is stuck
-    avoidAttempts int         // Number of attempts to avoid the obstacle
-    Health int                // Health points
+    lastShotTime  float64 // Time of the last shot
+    shootCooldown float64 // Time between shots (in seconds)
+    GameMap       *GameMap // Reference to the game map for collision detection
+    stuckCounter  int // Counter to detect if AI is stuck
+    avoidAttempts int // Number of attempts to avoid the obstacle
+    Health int // Health points
 }
 
-// NewAIPlayer creates a new AI player instance.
 func NewAIPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *AIPlayer {
     img, _, err := ebitenutil.NewImageFromFile(imgPath)
     if err != nil {
@@ -62,7 +61,6 @@ func NewAIPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *AI
     return aiPlayer
 }
 
-// GetBoundingBox returns the bounding box of the AI player at a specific position.
 func (ai *AIPlayer) GetBoundingBox(x, y float64) (float64, float64, float64, float64) {
     imgWidth, imgHeight := ai.Image.Bounds().Dx(), ai.Image.Bounds().Dy()
     halfWidth := float64(imgWidth) / 2
@@ -115,7 +113,6 @@ func (ai *AIPlayer) UpdateAI(player *Player, currentTime float64, game *Game) {
     }
 }
 
-// `tryMove` attempts to move the AI tank and adjusts its rotation to avoid obstacles.
 func (ai *AIPlayer) tryMove() {
     rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
 
@@ -170,23 +167,20 @@ func (ai *AIPlayer) avoidObstacle() {
     ai.avoidAttempts++
     if ai.avoidAttempts > 3 { // After 3 failed attempts, try a random angle
         ai.Rotation += float64(45 + rand.Intn(90)) // Random angle between 45 and 135 degrees
-        ai.avoidAttempts = 0                       // Reset the attempt counter
+        ai.avoidAttempts = 0 // Reset the attempt counter
     }
 }
 
-// Reset the AI tank's stuck state counters
 func (ai *AIPlayer) resetStuckState() {
     ai.stuckCounter = 0
     ai.avoidAttempts = 0
 }
 
-// ShootBullet creates a new bullet from the AI's current position and rotation
 func (ai *AIPlayer) ShootBullet(game *Game) {
     bullet := NewBulletFromAI(ai)
     game.bullets = append(game.bullets, bullet)
 }
 
-// Draw renders the AI player on the screen.
 func (ai *AIPlayer) Draw(screen *ebiten.Image) {
     opts := &ebiten.DrawImageOptions{}
     

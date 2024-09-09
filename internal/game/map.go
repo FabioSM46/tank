@@ -11,11 +11,11 @@ import (
 )
 
 const (
-    TileSize     = 32  // Size of each tile in pixels
-    MapWidth     = 25  // Number of horizontal tiles
-    MapHeight    = 19  // Number of vertical tiles
-    EmptyTile    = 0   // Represents empty space
-    WallTile     = 1   // Represents a wall or obstacle
+    TileSize     = 32 // Size of each tile in pixels
+    MapWidth     = 25 // Number of horizontal tiles
+    MapHeight    = 19 // Number of vertical tiles
+    EmptyTile    = 0 // Represents empty space
+    WallTile     = 1 // Represents a wall or obstacle
 )
 
 type GameMap struct {
@@ -35,7 +35,6 @@ func NewGameMap() *GameMap {
     return m
 }
 
-// Generate randomly places walls on the map
 func (m *GameMap) Generate() {
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -50,7 +49,6 @@ func (m *GameMap) Generate() {
     }
 }
 
-// CheckCollisionWithWall checks if any part of the player's bounding box intersects with a wall tile or if the player's bounding box is outside the map boundaries.
 func (m *GameMap) CheckCollisionWithWall(px1, py1, px2, py2 float64) bool {
     tileSize := float64(TileSize)
     collisionDetected := false
@@ -76,7 +74,6 @@ func (m *GameMap) CheckCollisionWithWall(px1, py1, px2, py2 float64) bool {
     return collisionDetected
 }
 
-// Draw renders the map to the screen
 func (m *GameMap) Draw(screen *ebiten.Image) {
     for y := 0; y < MapHeight; y++ {
         for x := 0; x < MapWidth; x++ {
@@ -96,7 +93,6 @@ func (m *GameMap) Draw(screen *ebiten.Image) {
     }
 }
 
-// CheckLineOfSight checks if there is a clear line of sight between two points
 func (gm *GameMap) CheckLineOfSight(x1, y1, x2, y2 float64) bool {
     // Calculate the number of steps needed for the line trace
     steps := int(math.Max(math.Abs(x2-x1), math.Abs(y2-y1)) / float64(TileSize))
@@ -121,8 +117,6 @@ func (gm *GameMap) CheckLineOfSight(x1, y1, x2, y2 float64) bool {
     return true // No obstacle detected
 }
 
-
-// IsWallTileAt checks if a given point is within a wall tile
 func (gm *GameMap) IsWallTileAt(x, y float64) bool {
 	tileX := int(x / float64(TileSize))
 	tileY := int(y / float64(TileSize))

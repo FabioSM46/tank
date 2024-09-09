@@ -101,10 +101,10 @@ func (g *Game) checkBulletCollisionWithTank(bullet *Bullet, tank interface{}) bo
     switch t := tank.(type) {
     case *Player:
         tankX, tankY = t.X, t.Y
-        tankWidth, tankHeight = 32.0, 32.0 // Example size for player tank, adjust as needed
+        tankWidth, tankHeight = 32.0, 32.0 // Size for player tank
     case *AIPlayer:
         tankX, tankY = t.X, t.Y
-        tankWidth, tankHeight = 32.0, 32.0 // Example size for AI tank, adjust as needed
+        tankWidth, tankHeight = 32.0, 32.0 // Size for AI tank
     default:
         return false // If not a known type, no collision
     }
@@ -139,8 +139,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
         restartText := "Press Enter to Restart"
         
         // Draw the "Paused" message
-        messageWidth := len(message) * 8 // Approximate character width, adjust as needed
-        messageHeight := 16              // Approximate character height, adjust as needed
+        messageWidth := len(message) * 8 // Character width
+        messageHeight := 16              // Character height
         messageX := (screenWidth - messageWidth) / 2
         messageY := (screenHeight - messageHeight * 3) / 2
         
