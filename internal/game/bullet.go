@@ -10,10 +10,10 @@ import (
 )
 
 type Bullet struct {
-	X, Y        float64 // Position
-	VelX, VelY  float64 // Velocity components
-	Rotation    float64 // Direction in degrees
-	BounceCount int     // Number of times the bullet has bounced
+	X, Y        float64     // Position
+	VelX, VelY  float64     // Velocity components
+	Rotation    float64     // Direction in degrees
+	BounceCount int         // Number of times the bullet has bounced
 	Owner       interface{} // Owner of the bullet (can be Player or AIPlayer)
 }
 
@@ -35,42 +35,42 @@ func NewBullet(player *Player) *Bullet {
 	velY := speed * math.Sin(rad)
 
 	return &Bullet{
-		X:          centerX + offsetX,
-		Y:          centerY + offsetY,
-		VelX:       velX,
-		VelY:       velY,
-		Rotation:   player.Rotation,
+		X:           centerX + offsetX,
+		Y:           centerY + offsetY,
+		VelX:        velX,
+		VelY:        velY,
+		Rotation:    player.Rotation,
 		BounceCount: 0,
-		Owner:      player,
+		Owner:       player,
 	}
 }
 
 // NewBulletFromAI creates a bullet instance for the AI
 func NewBulletFromAI(ai *AIPlayer) *Bullet {
-    // Calculate the center of the AI tank
-    imgWidth, imgHeight := ai.Image.Bounds().Dx(), ai.Image.Bounds().Dy()
-    centerX := ai.X + float64(imgWidth)/2
-    centerY := ai.Y + float64(imgHeight)/2
+	// Calculate the center of the AI tank
+	imgWidth, imgHeight := ai.Image.Bounds().Dx(), ai.Image.Bounds().Dy()
+	centerX := ai.X + float64(imgWidth)/2
+	centerY := ai.Y + float64(imgHeight)/2
 
-    // Calculate the starting position in front of the AI tank
-    rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
-    offsetX := 20 * math.Cos(rad)      // Distance in front of the tank
-    offsetY := 20 * math.Sin(rad)      // Distance in front of the tank
+	// Calculate the starting position in front of the AI tank
+	rad := ai.Rotation * math.Pi / 180 // Convert rotation angle to radians
+	offsetX := 20 * math.Cos(rad)      // Distance in front of the tank
+	offsetY := 20 * math.Sin(rad)      // Distance in front of the tank
 
-    // Set initial speed and velocity components
-    speed := 5.0
-    velX := speed * math.Cos(rad)
-    velY := speed * math.Sin(rad)
+	// Set initial speed and velocity components
+	speed := 5.0
+	velX := speed * math.Cos(rad)
+	velY := speed * math.Sin(rad)
 
-    return &Bullet{
-        X:          centerX + offsetX,
-        Y:          centerY + offsetY,
-        VelX:       velX,
-        VelY:       velY,
-        Rotation:   ai.Rotation,
-        BounceCount: 0,
-		Owner:      ai,
-    }
+	return &Bullet{
+		X:           centerX + offsetX,
+		Y:           centerY + offsetY,
+		VelX:        velX,
+		VelY:        velY,
+		Rotation:    ai.Rotation,
+		BounceCount: 0,
+		Owner:       ai,
+	}
 }
 
 // Update moves the bullet according to its velocity.

@@ -11,33 +11,33 @@ import (
 )
 
 type Player struct {
-	X, Y      float64 // Position
-	Speed     float64 // Movement speed
-	Rotation  float64 // Rotation angle in degrees
-	Color     color.Color // Player color
-	Image     *ebiten.Image // Tank image
-	lastShotTime  float64 // Time of the last shot
-    shootCooldown float64 // Time between shots (in seconds)
-	GameMap   *GameMap // Reference to the game map for collision detection
-	Health       int // Health points
+	X, Y          float64       // Position
+	Speed         float64       // Movement speed
+	Rotation      float64       // Rotation angle in degrees
+	Color         color.Color   // Player color
+	Image         *ebiten.Image // Tank image
+	lastShotTime  float64       // Time of the last shot
+	shootCooldown float64       // Time between shots (in seconds)
+	GameMap       *GameMap      // Reference to the game map for collision detection
+	Health        int           // Health points
 }
 
 func NewPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *Player {
-	img, _, err := ebitenutil.NewImageFromFile(imgPath) 
+	img, _, err := ebitenutil.NewImageFromFile(imgPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	player := &Player{
-		X:        x,
-		Y:        y,
-		Speed:    2.0,
-		Rotation: 0, 
-		Image:    img,
-		lastShotTime: 0,
-        shootCooldown: 2.0, 
-		GameMap:  gameMap,
-		Health:   100,
+		X:             x,
+		Y:             y,
+		Speed:         2.0,
+		Rotation:      0,
+		Image:         img,
+		lastShotTime:  0,
+		shootCooldown: 2.0,
+		GameMap:       gameMap,
+		Health:        100,
 	}
 
 	// Ensure the player does not start on a wall tile
@@ -60,46 +60,46 @@ func NewPlayer(x, y float64, imgPath string, gameMap *GameMap, health int) *Play
 }
 
 func (p *Player) Update(currentTime float64, game *Game) {
-    rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
+	rad := p.Rotation * math.Pi / 180 // Convert rotation angle to radians
 
-    // Calculate the potential new position
-    newX, newY := p.X, p.Y
-    if ebiten.IsKeyPressed(ebiten.KeyUp) {
-        newX += p.Speed * math.Cos(rad)
-        newY += p.Speed * math.Sin(rad)
-    }
-    if ebiten.IsKeyPressed(ebiten.KeyDown) {
-        newX -= p.Speed * math.Cos(rad)
-        newY -= p.Speed * math.Sin(rad)
-    }
-    if ebiten.IsKeyPressed(ebiten.KeyLeft) {
-        p.Rotation -= 2 // Rotate left
-    }
-    if ebiten.IsKeyPressed(ebiten.KeyRight) {
-        p.Rotation += 2 // Rotate right
-    }
+	// Calculate the potential new position
+	newX, newY := p.X, p.Y
+	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		newX += p.Speed * math.Cos(rad)
+		newY += p.Speed * math.Sin(rad)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		newX -= p.Speed * math.Cos(rad)
+		newY -= p.Speed * math.Sin(rad)
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
+		p.Rotation -= 2 // Rotate left
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		p.Rotation += 2 // Rotate right
+	}
 
-    // Check for shooting input
-    if ebiten.IsKeyPressed(ebiten.KeySpace) {
-        p.Shoot(currentTime, game)
-    }
+	// Check for shooting input
+	if ebiten.IsKeyPressed(ebiten.KeySpace) {
+		p.Shoot(currentTime, game)
+	}
 
-    // Calculate the player's bounding box at the new position
-    newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBox(newX, newY)
+	// Calculate the player's bounding box at the new position
+	newPx1, newPy1, newPx2, newPy2 := p.GetBoundingBox(newX, newY)
 
-    // Check for wall collision
-    if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
-        // Update the player position if no collision
-        p.X = newX
-        p.Y = newY
-    }
+	// Check for wall collision
+	if !p.GameMap.CheckCollisionWithWall(newPx1, newPy1, newPx2, newPy2) {
+		// Update the player position if no collision
+		p.X = newX
+		p.Y = newY
+	}
 
-    // Normalize the rotation angle to stay within 0-360 degrees
-    if p.Rotation >= 360 {
-        p.Rotation -= 360
-    } else if p.Rotation < 0 {
-        p.Rotation += 360
-    }
+	// Normalize the rotation angle to stay within 0-360 degrees
+	if p.Rotation >= 360 {
+		p.Rotation -= 360
+	} else if p.Rotation < 0 {
+		p.Rotation += 360
+	}
 }
 
 func (p *Player) GetBoundingBox(x, y float64) (float64, float64, float64, float64) {
@@ -108,7 +108,7 @@ func (p *Player) GetBoundingBox(x, y float64) (float64, float64, float64, float6
 	halfHeight := float64(imgHeight) / 2
 
 	offsetX, offsetY := 16.0, 16.0 // Adjust this value to move the bounding box
-	margin := 5.0 // Adjust this value to make the bounding box narrower
+	margin := 5.0                  // Adjust this value to make the bounding box narrower
 
 	// Calculate the bounding box with the applied offsets
 	left := x - halfWidth + margin + offsetX
@@ -148,16 +148,16 @@ func (p *Player) Draw(screen *ebiten.Image) {
 }
 
 func (p *Player) Shoot(currentTime float64, game *Game) {
-    if currentTime-p.lastShotTime >= p.shootCooldown {
-        bullet := NewBullet(p) // Create a new bullet
-        game.bullets = append(game.bullets, bullet) // Add bullet to the game's bullet list
-        p.lastShotTime = currentTime // Update the last shot time
-    }
+	if currentTime-p.lastShotTime >= p.shootCooldown {
+		bullet := NewBullet(p)                      // Create a new bullet
+		game.bullets = append(game.bullets, bullet) // Add bullet to the game's bullet list
+		p.lastShotTime = currentTime                // Update the last shot time
+	}
 }
 
 func (p *Player) TakeDamage(amount int, game *Game) {
-    p.Health -= amount
-    if p.Health <= 0 {
-        game.HandlePlayerDeath(p) 
-    }
+	p.Health -= amount
+	if p.Health <= 0 {
+		game.HandlePlayerDeath(p)
+	}
 }
