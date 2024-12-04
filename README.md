@@ -13,21 +13,7 @@ Aztank is a top-down 2D tank shooter game developed using the Go programming lan
   - Simple AI for enemy tanks
   - Collision detection for bullets, tanks, and obstacles
 
-## Installation
+## Libraries and Tools
 
-### Prerequisites
-
-- Go programming language (version 1.16 or higher)
-- Ebiten game library
-
-### Install Go
-
-Download and install Go from [golang.org](https://golang.org/dl/).
-
-### Install Ebiten
-
-Run the following command to install the Ebiten library:
-
-```bash
-go get -u github.com/hajimehoshi/ebiten/v2
-```
+- **Go programming language**: The programming language used to develop the game
+- **Ebiten game library**: A cross-platform 2D game development library for Go
